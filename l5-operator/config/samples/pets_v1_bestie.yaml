@@ -1,0 +1,7 @@
+apiVersion: pets.bestie.com/v1
+kind: Bestie
+metadata:
+  name: bestie-sample
+spec:
+  size: 2
+  agencyname: Animal Humane Society

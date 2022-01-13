@@ -1,7 +1,7 @@
 apiVersion: pets.bestie.com/v1
 kind: Bestie
 metadata:
-  name: bestie-application
+  name: bestie-sample
 spec:
-  agencyname: rose
-  size: 1
+  size: 2
+  agencyname: Animal Humane Society

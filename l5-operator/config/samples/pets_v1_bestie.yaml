@@ -1,0 +1,7 @@
+apiVersion: pets.bestie.com/v1
+kind: Bestie
+metadata:
+  name: bestie-application
+spec:
+  agencyname: rose
+  size: 1

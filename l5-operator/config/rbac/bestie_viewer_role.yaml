@@ -1,0 +1,20 @@
+# permissions for end users to view besties.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bestie-viewer-role
+rules:
+- apiGroups:
+  - pets.bestie.com
+  resources:
+  - besties
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pets.bestie.com
+  resources:
+  - besties/status
+  verbs:
+  - get

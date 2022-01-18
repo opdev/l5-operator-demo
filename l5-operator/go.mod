@@ -3,6 +3,7 @@ module github.com/opdev/l5-operator-demo/l5-operator
 go 1.17
 
 require (
+    github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.15.0
 	k8s.io/apimachinery v0.23.0

@@ -18,14 +18,23 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	//"time"
+	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	routev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
+
+var log = ctrllog.Log.WithName("controller_bestie")
 
 // BestieReconciler reconciles a Bestie object
 type BestieReconciler struct {
@@ -47,9 +56,66 @@ type BestieReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := ctrllog.FromContext(ctx)
+	log.Info("Reconciling Bestie")
 
-	// your logic here
+	// Fetch the Bestie instance
+	bestie := &petsv1.Bestie{}
+	err := r.Get(ctx, req.NamespacedName, bestie)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			log.Info("Bestie resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
+		// Error reading the object - requeue the request.
+		log.Error(err, "Failed to get Bestie")
+		return ctrl.Result{}, err
+	}
+
+	var result *reconcile.Result
+
+	result, err = r.ensureSecret(ctx, bestie, r.mysqlAuthSecret(bestie))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureDeployment(ctx, bestie, r.mysqlDeployment(bestie))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(ctx, bestie, r.mysqlService(bestie))
+	if result != nil {
+		return *result, err
+	}
+
+	mysqlRunning := r.isMysqlUp(bestie)
+
+	if !mysqlRunning {
+		// If MySQL isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("MySQL isn't running, waiting for %s", delay))
+		return ctrl.Result{RequeueAfter: delay}, nil
+	}
+
+	result, err = r.ensureDeployment(ctx, bestie, r.bestieAppDeployment(bestie))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(ctx, bestie, r.bestieAppService(bestie))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureRoute(ctx, bestie, r.bestieRoute(bestie))
+	if result != nil {
+		return *result, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -58,5 +124,9 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&petsv1.Bestie{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Service{}).
+		Owns(&corev1.Secret{}).
+		Owns(&routev1.Route{}).
 		Complete(r)
 }

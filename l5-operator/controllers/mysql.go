@@ -31,6 +31,8 @@ import (
 )
 
 const sqlPort = 3306
+const mysqlImage = "mysql:5.7"
+const mysqlDatabaseName = "bestie"
 
 func mysqlDeploymentName() string {
 	return "mysql"
@@ -134,14 +136,15 @@ func (r *BestieReconciler) mysqlDeployment(bestie *petsv1.Bestie) *appsv1.Deploy
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					Volumes: []corev1.Volume{{
-						Name: "mysql-data",
-						VolumeSource: corev1.VolumeSource{
-							EmptyDir: &corev1.EmptyDirVolumeSource{},
-						},
-					}},
+					Volumes: []corev1.Volume{
+						{
+							Name: "mysql-data",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
+							},
+						}},
 					Containers: []corev1.Container{{
-						Image: "mysql:5.7",
+						Image: mysqlImage,
 						Name:  "mysql-server",
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: sqlPort,
@@ -153,12 +156,12 @@ func (r *BestieReconciler) mysqlDeployment(bestie *petsv1.Bestie) *appsv1.Deploy
 						}},
 						Env: []corev1.EnvVar{
 							{
-								Name:  "MYSQL_ROOT_PASSWORD",
-								Value: "cakephp",
+								Name:      "MYSQL_ROOT_PASSWORD",
+								ValueFrom: passwordSecret,
 							},
 							{
 								Name:  "MYSQL_DATABASE",
-								Value: "cakephp",
+								Value: mysqlDatabaseName,
 							},
 							{
 								Name:      "MYSQL_USER",

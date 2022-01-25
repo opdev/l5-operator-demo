@@ -27,6 +27,10 @@ import (
 )
 
 const bestiePort = 8080
+const databaseServiceName = "mysql"
+const databaseName = "bestie"
+const sessionDefaults = "database"
+const bestieImage = "quay.io/rocrisp/cakedemo:v1"
 
 func bestieAppServiceName(bestie *petsv1.Bestie) string {
 	return bestie.Name + "-service"
@@ -115,32 +119,32 @@ func (r *BestieReconciler) bestieAppDeployment(bestie *petsv1.Bestie) *appsv1.De
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
-						Image: "quay.io/rocrisp/cakedemo:v1",
+						Image: bestieImage,
 						Name:  "bestie-demo",
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: bestiePort,
-							Name:          "bestie",
+							// Name:          "bestie",
 						}},
 						Env: []corev1.EnvVar{
 							{
 								Name:  "DATABASE_SERVICE_NAME",
-								Value: "mysql",
+								Value: databaseServiceName,
 							},
 							{
 								Name:  "DATABASE_NAME",
-								Value: "cakephp",
+								Value: databaseName,
 							},
 							{
 								Name:  "FIRST_LASTNAME",
 								Value: bestie.Spec.AgencyName,
 							},
-							{
-								Name:  "MYSQL_SERVICE_HOST",
-								Value: "mysql",
-							},
+							// {
+							// 	Name:  "MYSQL_SERVICE_HOST",
+							// 	Value: "mysql",
+							// },
 							{
 								Name:  "SESSION_DEFAULTS",
-								Value: "database",
+								Value: sessionDefaults,
 							},
 							{
 								Name:      "DATABASE_USER",

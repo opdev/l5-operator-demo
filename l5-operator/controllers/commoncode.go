@@ -22,11 +22,36 @@ import (
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
+
+func (r *BestieReconciler) ensureJob(ctx context.Context,
+	bestie *petsv1.Bestie,
+	job *batchv1.Job) (*reconcile.Result, error) {
+	// Check if the Job already exists, if not create a new one
+	found := &batchv1.Job{}
+	err := r.Get(ctx, types.NamespacedName{Name: job.Name, Namespace: bestie.Namespace}, found)
+	if err != nil && errors.IsNotFound(err) {
+		// Define a new Job
+		log.Info("Creating a new Job for", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+		err = r.Create(ctx, job)
+		if err != nil {
+			log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
+			return &reconcile.Result{}, err
+		} else {
+			// Job created successfully - return and requeue
+			return nil, nil
+		}
+	} else if err != nil {
+		log.Error(err, "Failed to get Job")
+		return &reconcile.Result{}, err
+	}
+	return nil, nil
+}
 
 func (r *BestieReconciler) ensureDeployment(ctx context.Context,
 	bestie *petsv1.Bestie,

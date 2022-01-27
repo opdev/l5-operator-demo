@@ -23,6 +23,7 @@ import (
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -74,6 +75,11 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	var result *reconcile.Result
 
+	result, err = r.ensureJob(ctx, bestie, r.bestieJob(bestie))
+	if result != nil {
+		return *result, err
+	}
+
 	result, err = r.ensureDeployment(ctx, bestie, r.bestieAppDeployment(bestie))
 	if result != nil {
 		return *result, err
@@ -98,6 +104,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&petsv1.Bestie{}).
+		Owns(&batchv1.Job{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Owns(&routev1.Route{}).

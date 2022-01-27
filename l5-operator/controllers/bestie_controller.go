@@ -18,8 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	//"time"
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
@@ -76,36 +74,12 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	var result *reconcile.Result
 
-	result, err = r.ensureSecret(ctx, bestie, r.mysqlAuthSecret(bestie))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureDeployment(ctx, bestie, r.mysqlDeployment(bestie))
-	if result != nil {
-		return *result, err
-	}
-
-	result, err = r.ensureService(ctx, bestie, r.mysqlService(bestie))
-	if result != nil {
-		return *result, err
-	}
-
-	mysqlRunning := r.isMysqlUp(bestie)
-
-	if !mysqlRunning {
-		// If MySQL isn't running yet, requeue the reconcile
-		// to run again after a delay
-		delay := time.Second * time.Duration(5)
-
-		log.Info(fmt.Sprintf("MySQL isn't running, waiting for %s", delay))
-		return ctrl.Result{RequeueAfter: delay}, nil
-	}
-
 	result, err = r.ensureDeployment(ctx, bestie, r.bestieAppDeployment(bestie))
 	if result != nil {
 		return *result, err
 	}
+
+	//create a job to migrate the dabase
 
 	result, err = r.ensureService(ctx, bestie, r.bestieAppService(bestie))
 	if result != nil {
@@ -126,7 +100,6 @@ func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&petsv1.Bestie{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
-		Owns(&corev1.Secret{}).
 		Owns(&routev1.Route{}).
 		Complete(r)
 }

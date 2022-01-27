@@ -52,35 +52,6 @@ func (r *BestieReconciler) ensureDeployment(ctx context.Context,
 	return nil, nil
 }
 
-func (r *BestieReconciler) ensureSecret(ctx context.Context,
-	bestie *petsv1.Bestie,
-	secret *corev1.Secret,
-) (*reconcile.Result, error) {
-	found := &corev1.Secret{}
-	err := r.Get(ctx, types.NamespacedName{Name: secret.Name, Namespace: bestie.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Create the secret
-		log.Error(err, "the error code is :")
-		log.Info("Creating a new secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
-		err = r.Create(ctx, secret)
-
-		if err != nil {
-			// Creation failed
-			log.Error(err, "Failed to create new Secret", "Secret.Namespace", secret.Namespace, "Secret.Name", secret.Name)
-			return &reconcile.Result{}, err
-		} else {
-			// Creation was successful
-			return nil, nil
-		}
-	} else if err != nil {
-		// Error that isn't due to the secret not existing
-		log.Error(err, "Failed to get Secret")
-		return &reconcile.Result{}, err
-	}
-
-	return nil, nil
-}
-
 func (r *BestieReconciler) ensureService(ctx context.Context,
 	bestie *petsv1.Bestie,
 	serv *corev1.Service,

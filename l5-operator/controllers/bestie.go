@@ -26,11 +26,13 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-const bestiePort = 8080
+const bestiePort = 8000
 const databaseServiceName = "mysql"
 const databaseName = "bestie"
 const sessionDefaults = "database"
-const bestieImage = "quay.io/rocrisp/cakedemo:v1"
+const bestieImage = "quay.io/skattoju/bestie:v1"
+
+var weight int32 = 100
 
 func bestieAppServiceName(bestie *petsv1.Bestie) string {
 	return bestie.Name + "-service"
@@ -51,9 +53,11 @@ func (r *BestieReconciler) bestieRoute(bestie *petsv1.Bestie) *routev1.Route {
 			Labels:    labels,
 		},
 		Spec: routev1.RouteSpec{
+
 			To: routev1.RouteTargetReference{
-				Kind: "Service",
-				Name: bestieAppServiceName(bestie),
+				Kind:   "Service",
+				Name:   bestieAppServiceName(bestie),
+				Weight: &weight,
 			},
 		},
 	}
@@ -72,10 +76,11 @@ func (r *BestieReconciler) bestieAppService(bestie *petsv1.Bestie) *corev1.Servi
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
+			Type:     "LoadBalancer",
 			Ports: []corev1.ServicePort{{
 				Protocol:   corev1.ProtocolTCP,
-				Port:       5000,
-				TargetPort: intstr.FromInt(8080),
+				Port:       80,
+				TargetPort: intstr.FromInt(8000),
 				NodePort:   0,
 			}},
 		},
@@ -89,19 +94,41 @@ func (r *BestieReconciler) bestieAppDeployment(bestie *petsv1.Bestie) *appsv1.De
 	labels := labels(bestie, "bestie")
 	size := bestie.Spec.Size
 
-	userSecret := &corev1.EnvVarSource{
+	host := &corev1.EnvVarSource{
 		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: mysqlAuthName()},
-			Key:                  "username",
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "host",
 		},
 	}
 
-	passwordSecret := &corev1.EnvVarSource{
+	port := &corev1.EnvVarSource{
 		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: mysqlAuthName()},
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "port",
+		},
+	}
+
+	dbname := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "dbname",
+		},
+	}
+
+	user := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "user",
+		},
+	}
+
+	password := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
 			Key:                  "password",
 		},
 	}
+	//log.Info("password is :", password)
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -123,36 +150,48 @@ func (r *BestieReconciler) bestieAppDeployment(bestie *petsv1.Bestie) *appsv1.De
 						Name:  "bestie-demo",
 						Ports: []corev1.ContainerPort{{
 							ContainerPort: bestiePort,
-							// Name:          "bestie",
+							Name:          "http",
 						}},
 						Env: []corev1.EnvVar{
 							{
-								Name:  "DATABASE_SERVICE_NAME",
-								Value: databaseServiceName,
+								Name:  "GUNICORN_CMD_ARGS",
+								Value: "--bind=0.0.0.0 --workers=3",
 							},
 							{
-								Name:  "DATABASE_NAME",
-								Value: databaseName,
+								Name:  "FLASK_APP",
+								Value: "app",
 							},
 							{
-								Name:  "FIRST_LASTNAME",
-								Value: bestie.Spec.AgencyName,
-							},
-							// {
-							// 	Name:  "MYSQL_SERVICE_HOST",
-							// 	Value: "mysql",
-							// },
-							{
-								Name:  "SESSION_DEFAULTS",
-								Value: sessionDefaults,
+								Name:  "FLASK_ENV",
+								Value: "development",
 							},
 							{
-								Name:      "DATABASE_USER",
-								ValueFrom: userSecret,
+								Name:  "SECRET_KEY",
+								Value: "secret-key",
 							},
 							{
-								Name:      "DATABASE_PASSWORD",
-								ValueFrom: passwordSecret,
+								Name:      "DB_ADDR",
+								ValueFrom: host,
+							},
+							{
+								Name:      "DB_PORT",
+								ValueFrom: port,
+							},
+							{
+								Name:      "DB_DATABASE",
+								ValueFrom: dbname,
+							},
+							{
+								Name:      "DB_USER",
+								ValueFrom: user,
+							},
+							{
+								Name:      "DB_PASSWORD",
+								ValueFrom: password,
+							},
+							{
+								Name:  "DATABASE_URL",
+								Value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_ADDR):$(DB_PORT)/$(DB_DATABASE)",
 							},
 						},
 					}},

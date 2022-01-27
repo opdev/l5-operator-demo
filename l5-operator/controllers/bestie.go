@@ -20,6 +20,7 @@ import (
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -40,6 +41,129 @@ func bestieAppServiceName(bestie *petsv1.Bestie) string {
 
 func bestieAppDeploymentName(bestie *petsv1.Bestie) string {
 	return bestie.Name + "-deployment"
+}
+
+func bestieJob(bestie *petsv1.Bestie) string {
+	return bestie.Name + "-job"
+}
+
+// newJob returns a new Job instance.
+func (r *BestieReconciler) bestieJob(bestie *petsv1.Bestie) *batchv1.Job {
+	labels := labels(bestie, "bestie")
+
+	host := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "host",
+		},
+	}
+
+	port := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "port",
+		},
+	}
+
+	dbname := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "dbname",
+		},
+	}
+
+	user := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "user",
+		},
+	}
+
+	password := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "hippo-pguser-hippo"},
+			Key:                  "password",
+		},
+	}
+
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bestieJob(bestie),
+			Namespace: bestie.Namespace,
+			Labels:    labels,
+		},
+		Spec: batchv1.JobSpec{
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Image:           bestieImage,
+						ImagePullPolicy: corev1.PullAlways,
+						Name:            "bestie-demo",
+						Ports: []corev1.ContainerPort{{
+							ContainerPort: bestiePort,
+						}},
+						Env: []corev1.EnvVar{
+							{
+								Name:  "GUNICORN_CMD_ARGS",
+								Value: "--bind=0.0.0.0 --workers=3",
+							},
+							{
+								Name:  "FLASK_APP",
+								Value: "app",
+							},
+							{
+								Name:  "FLASK_ENV",
+								Value: "development",
+							},
+							{
+								Name:  "SECRET_KEY",
+								Value: "secret-key",
+							},
+							{
+								Name:      "DB_ADDR",
+								ValueFrom: host,
+							},
+							{
+								Name:      "DB_PORT",
+								ValueFrom: port,
+							},
+							{
+								Name:      "DB_DATABASE",
+								ValueFrom: dbname,
+							},
+							{
+								Name:      "DB_USER",
+								ValueFrom: user,
+							},
+							{
+								Name:      "DB_PASSWORD",
+								ValueFrom: password,
+							},
+							{
+								Name:  "DATABASE_URL",
+								Value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_ADDR):$(DB_PORT)/$(DB_DATABASE)",
+							},
+						},
+						Command: []string{
+							"/bin/sh",
+							"-c",
+						},
+						Args: []string{
+							"flask db migrate",
+							"flask db upgrade",
+							"flask seed all",
+						},
+					}},
+					RestartPolicy: "OnFailure",
+				},
+			},
+		},
+	}
+	ctrl.SetControllerReference(bestie, job, r.Scheme)
+	return job
 }
 
 //route for bestie application

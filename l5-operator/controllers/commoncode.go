@@ -18,126 +18,41 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
-	routev1 "github.com/openshift/api/route/v1"
-	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func (r *BestieReconciler) ensureJob(ctx context.Context,
-	bestie *petsv1.Bestie,
-	job *batchv1.Job) (*reconcile.Result, error) {
-	// Check if the Job already exists, if not create a new one
-	found := &batchv1.Job{}
-	err := r.Get(ctx, types.NamespacedName{Name: job.Name, Namespace: bestie.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new Job
-		log.Info("Creating a new Job for", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-		err = r.Create(ctx, job)
-		if err != nil {
-			log.Error(err, "Failed to create new Job", "Job.Namespace", job.Namespace, "Job.Name", job.Name)
-			return &reconcile.Result{}, err
-		} else {
-			// Job created successfully - return and requeue
-			return nil, nil
-		}
-	} else if err != nil {
-		log.Error(err, "Failed to get Job")
-		return &reconcile.Result{}, err
-	}
-	return nil, nil
-}
+func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
 
-func (r *BestieReconciler) ensureDeployment(ctx context.Context,
-	bestie *petsv1.Bestie,
-	dep *appsv1.Deployment) (*reconcile.Result, error) {
-	// Check if the deployment already exists, if not create a new one
-	found := &appsv1.Deployment{}
-	err := r.Get(ctx, types.NamespacedName{Name: dep.Name, Namespace: bestie.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new deployment
-		log.Info("Creating a new Deployment for", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-		err = r.Create(ctx, dep)
-		if err != nil {
-			log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", dep.Namespace, "Deployment.Name", dep.Name)
-			return &reconcile.Result{}, err
-		} else {
-			// Deployment created successfully - return and requeue
-			return nil, nil
-		}
-	} else if err != nil {
-		log.Error(err, "Failed to get Deployment")
-		return &reconcile.Result{}, err
-	}
-	return nil, nil
-}
+	Log := ctrllog.FromContext(ctx)
 
-func (r *BestieReconciler) ensureService(ctx context.Context,
-	bestie *petsv1.Bestie,
-	serv *corev1.Service,
-) (*reconcile.Result, error) {
-	found := &corev1.Service{}
-	err := r.Get(ctx, types.NamespacedName{Name: serv.Name, Namespace: bestie.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Create the service
-		log.Info("Creating a new service", "Service.Namespace", serv.Namespace, "Service.Name", serv.Name)
-		err = r.Create(ctx, serv)
-
-		if err != nil {
-			// Creation failed
-			log.Error(err, "Failed to create new Service", "Service.Namespace", serv.Namespace, "Service.Name", serv.Name)
-			return &reconcile.Result{}, err
-		} else {
-			// Creation was successful
-			return nil, nil
-		}
-	} else if err != nil {
-		// Error that isn't due to the service not existing
-		log.Error(err, "Failed to get Service")
-		return &reconcile.Result{}, err
+	b, err := os.ReadFile(fileName)
+	if err != nil {
+		Log.Error(err, fmt.Sprintf("Couldn't read manifest file for: %s", fileName))
+		return err
 	}
 
-	return nil, nil
-}
-
-func (r *BestieReconciler) ensureRoute(ctx context.Context,
-	bestie *petsv1.Bestie,
-	route *routev1.Route,
-) (*reconcile.Result, error) {
-	found := &routev1.Route{}
-	err := r.Get(ctx, types.NamespacedName{Name: route.Name, Namespace: bestie.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-
-		// Create the route
-		log.Info("Creating a new Route", "Route.Namespace", route.Namespace, "Route.Name", route.Name)
-		err = r.Create(ctx, route)
-
-		if err != nil {
-			// Creation failed
-			log.Error(err, "Failed to create new Route", "Route.Namespace", route.Namespace, "Route.Name", route.Name)
-			return &reconcile.Result{}, err
-		} else {
-			// Creation was successful
-			return nil, nil
-		}
-	} else if err != nil {
-		// Error that isn't due to the route not existing
-		log.Error(err, "Failed to get Route")
-		return &reconcile.Result{}, err
+	if err = yamlutil.Unmarshal(b, &obj); err != nil {
+		Log.Error(err, fmt.Sprintf("Couldn't unmarshall yaml file for: %s", fileName))
+		return err
 	}
 
-	return nil, nil
-}
+	obj.SetNamespace(bestie.GetNamespace())
+	//obj.SetName(bestie.GetName())
+	controllerutil.SetControllerReference(bestie, obj, r.Scheme)
 
-func labels(v *petsv1.Bestie, tier string) map[string]string {
-	return map[string]string{
-		"app":         "Bestie",
-		"demosite_cr": v.Name,
-		"tier":        tier,
+	err = r.Client.Create(ctx, obj)
+	if err != nil {
+		Log.Error(err, "Failed to create object", "object", obj.GetName())
+		return err
 	}
+
+	return nil
 }

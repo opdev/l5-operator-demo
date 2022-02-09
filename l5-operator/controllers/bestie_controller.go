@@ -20,6 +20,7 @@ import (
 	"context"
 
 	//"time"
+	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -27,10 +28,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -73,28 +74,82 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	var result *reconcile.Result
+	//var result *reconcile.Result
 
-	result, err = r.ensureJob(ctx, bestie, r.bestieJob(bestie))
-	if result != nil {
-		return *result, err
+	// reconcile Postgres
+	pgo := &pgov1.PostgresCluster{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-pgo", Namespace: bestie.Namespace}, pgo)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new PGC for bestie")
+			fileName := "config/resources/postgrescluster.yaml"
+			r.applyManifests(ctx, req, bestie, pgo, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+		// TODO: should we update then?
 	}
 
-	result, err = r.ensureDeployment(ctx, bestie, r.bestieAppDeployment(bestie))
-	if result != nil {
-		return *result, err
+	// reconcile Deployment
+	dp := &appsv1.Deployment{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new app for bestie")
+			fileName := "config/resources/bestie-deploy.yaml"
+			r.applyManifests(ctx, req, bestie, dp, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+		// TODO: should we update then?
 	}
 
-	//create a job to migrate the dabase
+	job := &batchv1.Job{}
 
-	result, err = r.ensureService(ctx, bestie, r.bestieAppService(bestie))
-	if result != nil {
-		return *result, err
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-job", Namespace: bestie.Namespace}, job)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new job for bestie")
+			fileName := "config/resources/bestie-job.yaml"
+			r.applyManifests(ctx, req, bestie, job, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+		// TODO: should we update then?
 	}
 
-	result, err = r.ensureRoute(ctx, bestie, r.bestieRoute(bestie))
-	if result != nil {
-		return *result, err
+	// reconcile service
+
+	svc := &corev1.Service{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-service", Namespace: bestie.Namespace}, svc)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new service for bestie")
+			fileName := "config/resources/bestie-svc.yaml"
+			r.applyManifests(ctx, req, bestie, svc, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+		// TODO: should we update then?
+	}
+
+	// reconcile route
+
+	route := &routev1.Route{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new route for bestie")
+			fileName := "config/resources/bestie-route.yaml"
+			r.applyManifests(ctx, req, bestie, route, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+		// TODO: should we update then?
 	}
 
 	return ctrl.Result{}, nil
@@ -104,7 +159,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&petsv1.Bestie{}).
-		Owns(&batchv1.Job{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Owns(&routev1.Route{}).

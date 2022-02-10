@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bestie-job
+  labels:
+    app: bestie
+spec:
+  template:
+    spec:
+      containers:
+      - image: quay.io/mkong/bestiev2:1.1
+        name: bestie-job
+        command: ["/bin/sh",  "-c", "flask db migrate & flask db upgrade & flask seed all"]
+        env:
+        - name: GUNICORN_CMD_ARGS
+          value: "--bind=0.0.0.0 --workers=3"
+        - name: FLASK_APP
+          value: app
+        - name: FLASK_ENV
+          value: development
+          #todo fixme
+        - name: SECRET_KEY
+          value: lkasjdf09ajsdkfljalsiorj12n3490re9485309irefvn,u90818734902139489230
+        - name: DB_ADDR
+          valueFrom: { secretKeyRef: { name: bestie-pgo-pguser-bestie-pgo, key: host } }
+        - name: DB_PORT
+          valueFrom: { secretKeyRef: { name: bestie-pgo-pguser-bestie-pgo, key: port } }
+        - name: DB_DATABASE
+          valueFrom: { secretKeyRef: { name: bestie-pgo-pguser-bestie-pgo, key: dbname } }
+        - name: DB_USER
+          valueFrom: { secretKeyRef: { name: bestie-pgo-pguser-bestie-pgo, key: user } }
+        - name: DB_PASSWORD
+          valueFrom: { secretKeyRef: { name: bestie-pgo-pguser-bestie-pgo, key: password } }
+        - name: DATABASE_URL
+          value: postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_ADDR):$(DB_PORT)/$(DB_DATABASE)
+      Port:       8000
+      restartPolicy: Never
+  backoffLimit: 4
+  
+

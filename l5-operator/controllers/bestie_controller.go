@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	//"time"
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
@@ -32,6 +34,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -104,6 +107,18 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return ctrl.Result{Requeue: true}, err
 		}
 		// TODO: should we update then?
+	}
+
+	//isApprunning
+	bestieRunning := r.isRunning(ctx, bestie)
+
+	if !bestieRunning {
+		// If bestie-app isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("bestie-app isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
 	job := &batchv1.Job{}

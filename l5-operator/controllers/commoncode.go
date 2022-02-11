@@ -22,12 +22,31 @@ import (
 	"os"
 
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/types"
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+// Returns whether or not the MySQL deployment is running
+func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
+	dp := &appsv1.Deployment{}
+
+	err := r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
+
+	if err != nil {
+		log.Error(err, "Deployment found")
+		return false
+	}
+	if dp.Status.ReadyReplicas == 1 {
+		return true
+	}
+
+	return false
+}
 
 func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
 

@@ -17,6 +17,15 @@ spec:
       labels:
         app: bestie
     spec:
+      initContainers:
+      - name: check-db-ready
+        image: postgres:9.6.5
+        env:
+        - name: DB_ADDR
+          valueFrom: { secretKeyRef: { name: bestie-pgo-pguser-bestie-pgo, key: host } }
+        command: ['sh', '-c', 
+          'until pg_isready -h $(DB_ADDR) -p 5432; 
+          do echo waiting for database; sleep 2; done;']
       containers:
       - image: quay.io/mkong/bestiev2:1.1
         name: bestie

@@ -5,3 +5,5 @@ metadata:
 spec:
   size: 2
   agencyname: Animal Humane Society
+  image: quay.io/mkong/bestiev2
+  version: "2.0"

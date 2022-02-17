@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -65,6 +66,7 @@ func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request,
 
 	obj.SetNamespace(bestie.GetNamespace())
 	//obj.SetName(bestie.GetName())
+
 	controllerutil.SetControllerReference(bestie, obj, r.Scheme)
 
 	err = r.Client.Create(ctx, obj)
@@ -74,4 +76,29 @@ func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request,
 	}
 
 	return nil
+}
+
+// getBestieContainerImage will return the container image for the Bestie App Image.
+func getBestieContainerImage(bestie *petsv1.Bestie) string {
+	img := BestieDefaultImage
+	if len(bestie.Spec.Image) > 0 {
+		img = bestie.Spec.Image
+	}
+
+	tag := BestieDefaultVersion
+	if len(bestie.Spec.Version) > 0 {
+		tag = bestie.Spec.Version
+	}
+
+	return CombineImageTag(img, tag)
+}
+
+// CombineImageTag will return the combined image and tag in the proper format for tags and digests.
+func CombineImageTag(img string, tag string) string {
+	if strings.Contains(tag, ":") {
+		return fmt.Sprintf("%s@%s", img, tag) // Digest
+	} else if len(tag) > 0 {
+		return fmt.Sprintf("%s:%s", img, tag) // Tag
+	}
+	return img // No tag, use default
 }

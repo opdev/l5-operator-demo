@@ -1,5 +1,0 @@
-dependencies:
-  - type: olm.package
-    value:
-      packageName: crunchy-postgres-operator-rhmp
-      version:  ">=13"

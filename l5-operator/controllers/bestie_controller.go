@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	//"time"
@@ -44,6 +45,11 @@ type BestieReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
+
+const (
+	BestieDefaultImage   = "quay.io/mkong/bestiev2"
+	BestieDefaultVersion = "1.1"
+)
 
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties/status,verbs=get;update;patch
@@ -96,6 +102,95 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	// reconcile Deployment
 	dp := &appsv1.Deployment{}
+	desired := &appsv1.Deployment{}
+
+	host := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
+			Key:                  "host",
+		},
+	}
+
+	port := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
+			Key:                  "port",
+		},
+	}
+
+	dbname := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
+			Key:                  "dbname",
+		},
+	}
+
+	user := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
+			Key:                  "user",
+		},
+	}
+
+	password := &corev1.EnvVarSource{
+		SecretKeyRef: &corev1.SecretKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
+			Key:                  "password",
+		},
+	}
+
+	container := corev1.Container{
+		Name:  "bestie",
+		Image: getBestieContainerImage(bestie),
+		Ports: []corev1.ContainerPort{
+			{
+				ContainerPort: 8000,
+				Name:          "http",
+			},
+		},
+		Env: []corev1.EnvVar{
+			{
+				Name:  "GUNICORN_CMD_ARGS",
+				Value: "--bind=0.0.0.0 --workers=3",
+			},
+			{
+				Name:  "FLASK_APP",
+				Value: "app",
+			},
+			{
+				Name:  "FLASK_ENV",
+				Value: "development",
+			},
+			{
+				Name:  "SECRET_KEY",
+				Value: "secret-key",
+			},
+			{
+				Name:      "DB_ADDR",
+				ValueFrom: host,
+			},
+			{
+				Name:      "DB_PORT",
+				ValueFrom: port,
+			},
+			{
+				Name:      "DB_DATABASE",
+				ValueFrom: dbname,
+			},
+			{
+				Name:      "DB_USER",
+				ValueFrom: user,
+			},
+			{
+				Name:      "DB_PASSWORD",
+				ValueFrom: password,
+			},
+			{
+				Name:  "DATABASE_URL",
+				Value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_ADDR):$(DB_PORT)/$(DB_DATABASE)",
+			},
+		},
+	}
 
 	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
@@ -120,6 +215,22 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		log.Info(fmt.Sprintf("bestie-app isn't running, waiting for %s", delay))
 		return reconcile.Result{RequeueAfter: delay}, nil
 	}
+
+	//update app version if different from the current
+	desired.Spec.Template.Spec.Containers = append(desired.Spec.Template.Spec.Containers, container)
+
+	bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0], desired.Spec.Template.Spec.Containers)
+	if bestieImageDifferent {
+		log.Info("update application version")
+		dp.Spec.Template.Spec.Containers = desired.Spec.Template.Spec.Containers
+		err = r.Client.Update(ctx, dp)
+		if err != nil {
+			log.Error(err, "Failed to update bestie image")
+			return ctrl.Result{}, err
+		}
+	}
+
+	
 
 	job := &batchv1.Job{}
 

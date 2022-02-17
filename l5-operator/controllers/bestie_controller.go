@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	//"time"
@@ -119,6 +120,17 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 		log.Info(fmt.Sprintf("bestie-app isn't running, waiting for %s", delay))
 		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+	//update status
+	appVersion := r.reportappversion(bestie)
+	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
+		bestie.Status.AppVersion = appVersion
+		log.Info("update app version status")
+		err := r.Status().Update(ctx, bestie)
+		if err != nil {
+			log.Error(err, "Failed to update app-version status")
+			return ctrl.Result{}, err
+		}
 	}
 
 	job := &batchv1.Job{}

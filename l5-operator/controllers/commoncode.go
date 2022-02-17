@@ -31,6 +31,8 @@ import (
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+const BestieDefaultVersion = "1.1"
+
 // Returns whether or not the MySQL deployment is running
 func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
 	dp := &appsv1.Deployment{}
@@ -46,6 +48,15 @@ func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie)
 	}
 
 	return false
+}
+
+func (r *BestieReconciler) reportappversion(bestie *petsv1.Bestie) string {
+
+	tag := BestieDefaultVersion
+	if len(bestie.Spec.Version) > 0 {
+		tag = bestie.Spec.Version
+	}
+	return tag
 }
 
 func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request, bestie *petsv1.Bestie, obj client.Object, fileName string) error {

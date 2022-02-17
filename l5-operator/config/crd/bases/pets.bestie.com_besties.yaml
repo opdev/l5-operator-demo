@@ -36,26 +36,30 @@ spec:
           spec:
             description: BestieSpec defines the desired state of Bestie
             properties:
-              agencyname:
+              image:
                 type: string
               size:
                 description: Foo is an example field of Bestie. Edit bestie_types.go
                   to remove/update
                 format: int32
                 type: integer
+              version:
+                type: string
             required:
-            - agencyname
             - size
             type: object
           status:
             description: BestieStatus defines the observed state of Bestie
             properties:
+              appversion:
+                type: string
               podstatus:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'
                 type: string
             required:
+            - appversion
             - podstatus
             type: object
         type: object

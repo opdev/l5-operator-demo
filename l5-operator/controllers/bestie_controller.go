@@ -31,11 +31,16 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	networkv1 "k8s.io/api/networking/v1"
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -165,18 +170,55 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	// reconcile route
 
-	route := &routev1.Route{}
+	// route := &routev1.Route{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
+	// err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
+	// if err != nil {
+	// 	if errors.IsNotFound(err) {
+	// 		log.Info("Creating a new route for bestie")
+	// 		fileName := "config/resources/bestie-route.yaml"
+	// 		r.applyManifests(ctx, req, bestie, route, fileName)
+	// 	} else {
+	// 		return ctrl.Result{Requeue: true}, err
+	// 	}
+	// 	// TODO: should we update then?
+	// }
+
+
+	// Checking to see if cluster is an OpenShift cluster
+	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating a new route for bestie")
-			fileName := "config/resources/bestie-route.yaml"
-			r.applyManifests(ctx, req, bestie, route, fileName)
-		} else {
-			return ctrl.Result{Requeue: true}, err
+		return ctrl.Result{}, err
+	}
+
+	// If the cluster is OpenShift, add a route, else add an ingress
+	if isOpenShiftCluster {
+		route := &routev1.Route{}
+		err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				log.Info("Creating a new route for bestie")
+				fileName := "config/resources/bestie-route.yaml"
+				r.applyManifests(ctx, req, bestie, route, fileName)
+			} else {
+				log.Error(err, "Failed to get route.")
+				return ctrl.Result{Requeue: true}, err
+			}
+			// TODO: should we update then?
 		}
-		// TODO: should we update then?
+	} else {
+		ingress := &networkv1.Ingress{}
+		err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-ingress", Namespace: bestie.Namespace}, ingress)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				log.Info("Creating a new ingress for bestie")
+				fileName := "config/resources/bestie-ingress.yaml"
+				r.applyManifests(ctx, req, bestie, ingress, fileName)
+			} else {
+				log.Error(err, "Failed to get ingress.")
+				return ctrl.Result{Requeue: true}, err
+			}
+		}
 	}
 
 	return ctrl.Result{}, nil
@@ -190,4 +232,27 @@ func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{}).
 		Owns(&routev1.Route{}).
 		Complete(r)
+}
+
+func verifyOpenShiftCluster(group string, version string) (bool, error) {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		return false, err
+	}
+
+	k8s, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return false, err
+	}
+
+	gv := schema.GroupVersion {
+		Group: group,
+		Version: version,
+	}
+
+	if err = discovery.ServerSupportsVersion(k8s, gv); err != nil {
+		return false, nil
+	}
+
+	return true, nil
 }

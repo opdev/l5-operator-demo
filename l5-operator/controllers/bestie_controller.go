@@ -29,6 +29,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -40,7 +41,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	networkv1 "k8s.io/api/networking/v1"
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -184,7 +184,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// 	// TODO: should we update then?
 	// }
 
-
 	// Checking to see if cluster is an OpenShift cluster
 	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
 	if err != nil {
@@ -245,8 +244,8 @@ func verifyOpenShiftCluster(group string, version string) (bool, error) {
 		return false, err
 	}
 
-	gv := schema.GroupVersion {
-		Group: group,
+	gv := schema.GroupVersion{
+		Group:   group,
 		Version: version,
 	}
 

@@ -6,4 +6,4 @@ spec:
   size: 2
   image: quay.io/mkong/bestiev2
   version: "10.0"
-  agencyname: "AHS"
+  # agencyname: "AHS"

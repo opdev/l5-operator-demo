@@ -33,6 +33,7 @@ spec:
           value: app
         - name: FLASK_ENV
           value: development
+          #todo fixme
         - name: SECRET_KEY
           value: lkasjdf09ajsdkfljalsiorj12n3490re9485309irefvn,u90818734902139489230
         - name: DB_ADDR

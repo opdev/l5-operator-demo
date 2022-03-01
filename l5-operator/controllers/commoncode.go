@@ -35,6 +35,7 @@ import (
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+
 // Returns true if readyReplicas=1
 func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
 	dp := &appsv1.Deployment{}

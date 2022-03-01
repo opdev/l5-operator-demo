@@ -61,6 +61,7 @@ spec:
             required:
             - appstatus
             - appversion
+
             type: object
         type: object
     served: true

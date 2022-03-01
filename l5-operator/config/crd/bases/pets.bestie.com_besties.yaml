@@ -52,11 +52,11 @@ spec:
             description: BestieStatus defines the observed state of Bestie
             properties:
               appstatus:
-                type: string
-              appversion:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'
+                type: string
+              appversion:
                 type: string
             required:
             - appstatus

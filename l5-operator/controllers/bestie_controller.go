@@ -35,7 +35,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -49,6 +48,7 @@ type BestieReconciler struct {
 const (
 	BestieDefaultImage   = "quay.io/mkong/bestiev2"
 	BestieDefaultVersion = "1.1"
+	BestieName           = "bestie"
 )
 
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
@@ -83,12 +83,10 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	//var result *reconcile.Result
-
 	// reconcile Postgres
 	pgo := &pgov1.PostgresCluster{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-pgo", Namespace: bestie.Namespace}, pgo)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-pgo", Namespace: bestie.Namespace}, pgo)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new PGC for bestie")
@@ -97,102 +95,11 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	// reconcile Deployment
 	dp := &appsv1.Deployment{}
-	desired := &appsv1.Deployment{}
-
-	host := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "host",
-		},
-	}
-
-	port := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "port",
-		},
-	}
-
-	dbname := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "dbname",
-		},
-	}
-
-	user := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "user",
-		},
-	}
-
-	password := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "password",
-		},
-	}
-
-	container := corev1.Container{
-		Name:  "bestie",
-		Image: getBestieContainerImage(bestie),
-		Ports: []corev1.ContainerPort{
-			{
-				ContainerPort: 8000,
-				Name:          "http",
-			},
-		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "GUNICORN_CMD_ARGS",
-				Value: "--bind=0.0.0.0 --workers=3",
-			},
-			{
-				Name:  "FLASK_APP",
-				Value: "app",
-			},
-			{
-				Name:  "FLASK_ENV",
-				Value: "development",
-			},
-			{
-				Name:  "SECRET_KEY",
-				Value: "secret-key",
-			},
-			{
-				Name:      "DB_ADDR",
-				ValueFrom: host,
-			},
-			{
-				Name:      "DB_PORT",
-				ValueFrom: port,
-			},
-			{
-				Name:      "DB_DATABASE",
-				ValueFrom: dbname,
-			},
-			{
-				Name:      "DB_USER",
-				ValueFrom: user,
-			},
-			{
-				Name:      "DB_PASSWORD",
-				ValueFrom: password,
-			},
-			{
-				Name:  "DATABASE_URL",
-				Value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_ADDR):$(DB_PORT)/$(DB_DATABASE)",
-			},
-		},
-	}
-
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new app for bestie")
@@ -201,40 +108,50 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
-	//isApprunning
+	//isAppRunning
 	bestieRunning := r.isRunning(ctx, bestie)
 
 	if !bestieRunning {
 		// If bestie-app isn't running yet, requeue the reconcile
 		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+		delay := time.Second * time.Duration(15)
 
-		log.Info(fmt.Sprintf("bestie-app isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
+		log.Info(fmt.Sprintf("bestie-app is instantiating, waiting for %s", delay))
+		return ctrl.Result{RequeueAfter: delay}, nil
 	}
 
-	//update app version if different from the current
-	desired.Spec.Template.Spec.Containers = append(desired.Spec.Template.Spec.Containers, container)
+	//Level 2 : update Operand
+	err = r.upgradeOperand(ctx, bestie)
+	if err != nil {
+		log.Error(err, "Failed to upgrade the operand")
+		return ctrl.Result{Requeue: true}, err
+	}
 
-	bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0], desired.Spec.Template.Spec.Containers)
-	if bestieImageDifferent {
-		log.Info("update application version")
-		dp.Spec.Template.Spec.Containers = desired.Spec.Template.Spec.Containers
-		err = r.Client.Update(ctx, dp)
+	//Level 1 : update appVersion status
+	appVersion := r.reportappversion(bestie)
+	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
+		bestie.Status.AppVersion = appVersion
+		log.Info("update app version status")
+		err := r.Status().Update(ctx, bestie)
 		if err != nil {
-			log.Error(err, "Failed to update bestie image")
-			return ctrl.Result{}, err
+			log.Error(err, "Failed to update app-version status")
+			return ctrl.Result{Requeue: true}, err
 		}
 	}
 
-	
+	//Level 1 : update application status
+	err = r.updateApplicationStatus(ctx, bestie)
+	if err != nil {
+		log.Error(err, "Failed to update bestie application status")
+		return ctrl.Result{Requeue: true}, err
+	}
 
+	//seed the database - as long as the postgres app is up and running this can run
 	job := &batchv1.Job{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-job", Namespace: bestie.Namespace}, job)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-job", Namespace: bestie.Namespace}, job)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new job for bestie")
@@ -243,14 +160,12 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	// reconcile service
-
 	svc := &corev1.Service{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-service", Namespace: bestie.Namespace}, svc)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-service", Namespace: bestie.Namespace}, svc)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new service for bestie")
@@ -259,14 +174,12 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	// reconcile route
-
 	route := &routev1.Route{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-route", Namespace: bestie.Namespace}, route)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new route for bestie")
@@ -275,7 +188,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	return ctrl.Result{}, nil

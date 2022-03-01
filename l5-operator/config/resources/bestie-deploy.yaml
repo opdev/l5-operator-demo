@@ -20,8 +20,8 @@ spec:
         env:
         - name: DB_ADDR
           valueFrom: { secretKeyRef: { name: bestie-pgo-pguser-bestie-pgo, key: host } }
-        command: ['sh', '-c', 
-          'until pg_isready -h $(DB_ADDR) -p 5432; 
+        command: ['sh', '-c',
+          'until pg_isready -h $(DB_ADDR) -p 5432;
           do echo waiting for database; sleep 2; done;']
       containers:
       - image: quay.io/mkong/bestiev2:1.1
@@ -54,3 +54,13 @@ spec:
           httpGet:
             path: /foster
             port: 8000
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path: /foster
+            port: 8000
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+          periodSeconds: 15

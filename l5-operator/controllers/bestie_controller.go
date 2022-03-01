@@ -147,17 +147,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		log.Error(err, "Failed to update bestie application status")
 		return ctrl.Result{Requeue: true}, err
 	}
-	//update status
-	appVersion := r.reportappversion(bestie)
-	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
-		bestie.Status.AppVersion = appVersion
-		log.Info("update app version status")
-		err := r.Status().Update(ctx, bestie)
-		if err != nil {
-			log.Error(err, "Failed to update app-version status")
-			return ctrl.Result{}, err
-		}
-	}
 
 	//seed the database - as long as the postgres app is up and running this can run
 	job := &batchv1.Job{}

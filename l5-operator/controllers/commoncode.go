@@ -35,7 +35,6 @@ import (
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-
 // Returns true if readyReplicas=1
 func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
 	dp := &appsv1.Deployment{}
@@ -116,102 +115,8 @@ func CombineImageTag(img string, tag string) string {
 	return img // No tag, use default
 }
 
-//Create a container object with the image from cr
-func createContainer(bestie *petsv1.Bestie) corev1.Container {
-	host := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "host",
-		},
-	}
-
-	port := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "port",
-		},
-	}
-
-	dbname := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "dbname",
-		},
-	}
-
-	user := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "user",
-		},
-	}
-
-	password := &corev1.EnvVarSource{
-		SecretKeyRef: &corev1.SecretKeySelector{
-			LocalObjectReference: corev1.LocalObjectReference{Name: "bestie-pgo-pguser-bestie-pgo"},
-			Key:                  "password",
-		},
-	}
-
-	container := corev1.Container{
-		Name:  "bestie",
-		Image: getBestieContainerImage(bestie),
-		Ports: []corev1.ContainerPort{
-			{
-				ContainerPort: 8000,
-				Name:          "http",
-			},
-		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "GUNICORN_CMD_ARGS",
-				Value: "--bind=0.0.0.0 --workers=3",
-			},
-			{
-				Name:  "FLASK_APP",
-				Value: "app",
-			},
-			{
-				Name:  "FLASK_ENV",
-				Value: "development",
-			},
-			{
-				Name:  "SECRET_KEY",
-				Value: "secret-key",
-			},
-			{
-				Name:      "DB_ADDR",
-				ValueFrom: host,
-			},
-			{
-				Name:      "DB_PORT",
-				ValueFrom: port,
-			},
-			{
-				Name:      "DB_DATABASE",
-				ValueFrom: dbname,
-			},
-			{
-				Name:      "DB_USER",
-				ValueFrom: user,
-			},
-			{
-				Name:      "DB_PASSWORD",
-				ValueFrom: password,
-			},
-			{
-				Name:  "DATABASE_URL",
-				Value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_ADDR):$(DB_PORT)/$(DB_DATABASE)",
-			},
-		},
-	}
-	return container
-}
-
 func (r *BestieReconciler) upgradeOperand(ctx context.Context, bestie *petsv1.Bestie) error {
 	dp := &appsv1.Deployment{}
-	desired := &appsv1.Deployment{}
-	container := createContainer(bestie)
 
 	err := r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
@@ -221,13 +126,12 @@ func (r *BestieReconciler) upgradeOperand(ctx context.Context, bestie *petsv1.Be
 		}
 	}
 
-	desired.Spec.Template.Spec.Containers = append(desired.Spec.Template.Spec.Containers, container)
-
-	bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0].Image, desired.Spec.Template.Spec.Containers[0].Image)
+	//compare deployment container image to bestie spec image+version
+	bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0].Image, getBestieContainerImage(bestie))
 
 	if bestieImageDifferent {
 		log.Info("Upgrade Operand")
-		dp.Spec.Template.Spec.Containers = desired.Spec.Template.Spec.Containers
+		dp.Spec.Template.Spec.Containers[0].Image = getBestieContainerImage(bestie)
 		err = r.Client.Update(ctx, dp)
 		if err != nil {
 			log.Error(err, "Need to update, but failed to update bestie image")

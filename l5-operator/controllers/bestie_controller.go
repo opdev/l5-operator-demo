@@ -204,6 +204,9 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				return ctrl.Result{Requeue: true}, err
 			}
 			// TODO: should we update then?
+		} else if err != nil {
+			log.Error(err, "Failed to get Route")
+			return ctrl.Result{}, err
 		}
 	} else {
 		ingress := &networkv1.Ingress{}
@@ -217,6 +220,9 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				log.Error(err, "Failed to get ingress.")
 				return ctrl.Result{Requeue: true}, err
 			}
+		} else if err != nil {
+			log.Error(err, "Failed to get Ingress")
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -230,6 +236,7 @@ func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Owns(&routev1.Route{}).
+		Owns(&networkv1.Ingress{}).
 		Complete(r)
 }
 

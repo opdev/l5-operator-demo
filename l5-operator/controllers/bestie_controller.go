@@ -39,6 +39,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -49,6 +50,9 @@ var log = ctrllog.Log.WithName("controller_bestie")
 type BestieReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+}
+
+type Export struct {
 }
 
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
@@ -190,6 +194,8 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
+	// "route.openshift.io/v1"
+
 	// If the cluster is OpenShift, add a route, else add an ingress
 	if isOpenShiftCluster {
 		route := &routev1.Route{}
@@ -237,6 +243,7 @@ func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{}).
 		Owns(&routev1.Route{}).
 		Owns(&networkv1.Ingress{}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 2}).
 		Complete(r)
 }
 

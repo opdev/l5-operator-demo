@@ -30,6 +30,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -39,7 +40,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
+	controller "sigs.k8s.io/controller-runtime/pkg/controller"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -52,7 +53,8 @@ type BestieReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-type Export struct {
+type Cluster struct {
+	ClusterType string `json:"clusterType,omitempty"`
 }
 
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
@@ -172,6 +174,45 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		// TODO: should we update then?
 	}
 
+	sa := &corev1.ServiceAccount{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-sa", Namespace: bestie.Namespace}, sa)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new service account for bestie")
+			fileName := "config/resources/bestie-sa.yaml"
+			r.applyManifests(ctx, req, bestie, sa, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
+	clusterrole := &rbacv1.ClusterRole{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-clusterrole", Namespace: bestie.Namespace}, clusterrole)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new ClusterRole for bestie")
+			fileName := "config/resources/bestie-clusterrole.yaml"
+			r.applyManifests(ctx, req, bestie, clusterrole, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
+	crb := &rbacv1.ClusterRoleBinding{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-crb", Namespace: bestie.Namespace}, crb)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating a new ClusterRoleBindinging for bestie")
+			fileName := "config/resources/bestie-crb.yaml"
+			r.applyManifests(ctx, req, bestie, crb, fileName)
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
 	// reconcile route
 
 	// route := &routev1.Route{}
@@ -189,12 +230,11 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// }
 
 	// Checking to see if cluster is an OpenShift cluster
+	// Checks for this api "route.openshift.io/v1"
 	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-
-	// "route.openshift.io/v1"
 
 	// If the cluster is OpenShift, add a route, else add an ingress
 	if isOpenShiftCluster {
@@ -210,7 +250,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				return ctrl.Result{Requeue: true}, err
 			}
 			// TODO: should we update then?
-		} else if err != nil {
+		} else {
 			log.Error(err, "Failed to get Route")
 			return ctrl.Result{}, err
 		}
@@ -226,7 +266,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				log.Error(err, "Failed to get ingress.")
 				return ctrl.Result{Requeue: true}, err
 			}
-		} else if err != nil {
+		} else {
 			log.Error(err, "Failed to get Ingress")
 			return ctrl.Result{}, err
 		}
@@ -243,6 +283,9 @@ func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.Service{}).
 		Owns(&routev1.Route{}).
 		Owns(&networkv1.Ingress{}).
+		Owns(&corev1.ServiceAccount{}).
+		Owns(&rbacv1.ClusterRole{}).
+		Owns(&rbacv1.ClusterRoleBinding{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 2}).
 		Complete(r)
 }

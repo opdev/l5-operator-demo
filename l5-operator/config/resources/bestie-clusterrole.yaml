@@ -1,0 +1,8 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bestie-clusterrole
+rules:
+- apiGroups: ["pets.bestie.com/v1"]
+  resources: ["bestie"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

@@ -22,23 +22,24 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+
+	routev1 "github.com/openshift/api/route/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
-	routev1 "github.com/openshift/api/route/v1"
+	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	"github.com/opdev/l5-operator-demo/l5-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
-	"github.com/opdev/l5-operator-demo/l5-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -47,6 +48,113 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+// func verifyOpenShiftCluster(group string, version string) (bool, error) {
+// 	cfg, err := config.GetConfig()
+// 	if err != nil {
+// 		return false, err
+// 	}
+
+// 	k8s, err := kubernetes.NewForConfig(cfg)
+// 	if err != nil {
+// 		return false, err
+// 	}
+
+// 	gv := schema.GroupVersion{
+// 		Group:   group,
+// 		Version: version,
+// 	}
+
+// 	if err = discovery.ServerSupportsVersion(k8s, gv); err != nil {
+// 		return false, nil
+// 	}
+
+// 	return true, nil
+// }
+
+func init() {
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	// utilruntime.Must(routev1.AddToScheme(scheme))
+	utilruntime.Must(pgov1.AddToScheme(scheme))
+	utilruntime.Must(petsv1.AddToScheme(scheme))
+	//+kubebuilder:scaffold:scheme
+
+	// isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
+	// if isOpenShiftCluster {
+	// 	utilruntime.Must(routev1.AddToScheme(scheme))
+	// } else if err != nil {
+	// 	println("Ingress to Scheme")
+	// }
+}
+
+func main() {
+	var metricsAddr string
+	var enableLeaderElection bool
+	var probeAddr string
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
+	opts := zap.Options{
+		Development: true,
+	}
+	opts.BindFlags(flag.CommandLine)
+	flag.Parse()
+
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
+	// ** check cluster type **
+	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
+	if err != nil {
+		return
+	}
+
+	// ** add route to scheme if OpenShift cluster **
+	if isOpenShiftCluster {
+		utilruntime.Must(routev1.AddToScheme(scheme))
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		Scheme:                 scheme,
+		MetricsBindAddress:     metricsAddr,
+		Port:                   9443,
+		HealthProbeBindAddress: probeAddr,
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "9b140e36.bestie.com",
+	})
+
+	if err != nil {
+		setupLog.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	if err = (&controllers.BestieReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Bestie")
+		os.Exit(1)
+	}
+
+	//+kubebuilder:scaffold:builder
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
+
+	setupLog.Info("starting manager")
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+		setupLog.Error(err, "problem running manager")
+		os.Exit(1)
+	}
+}
+
+// ** verify cluster type function **
 func verifyOpenShiftCluster(group string, version string) (bool, error) {
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -68,73 +176,4 @@ func verifyOpenShiftCluster(group string, version string) (bool, error) {
 	}
 
 	return true, nil
-}
-
-func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	// utilruntime.Must(routev1.AddToScheme(scheme))
-	utilruntime.Must(pgov1.AddToScheme(scheme))
-	utilruntime.Must(petsv1.AddToScheme(scheme))
-	//+kubebuilder:scaffold:scheme
-	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
-	if isOpenShiftCluster {
-		utilruntime.Must(routev1.AddToScheme(scheme))
-	} else if err != nil {
-		println("Ingress to Scheme")
-	}
-}
-
-func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
-	opts := zap.Options{
-		Development: true,
-	}
-	opts.BindFlags(flag.CommandLine)
-	flag.Parse()
-
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
-
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "9b140e36.bestie.com",
-	})
-	if err != nil {
-		setupLog.Error(err, "unable to start manager")
-		os.Exit(1)
-	}
-
-	if err = (&controllers.BestieReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Bestie")
-		os.Exit(1)
-	}
-	//+kubebuilder:scaffold:builder
-
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
-	}
-
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
-		os.Exit(1)
-	}
 }

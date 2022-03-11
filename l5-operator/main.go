@@ -24,10 +24,10 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 
 	routev1 "github.com/openshift/api/route/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/kubernetes"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	// "k8s.io/apimachinery/pkg/runtime/schema"
+	// "k8s.io/client-go/discovery"
+	// "k8s.io/client-go/kubernetes"
+	// "sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
@@ -48,42 +48,12 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-// func verifyOpenShiftCluster(group string, version string) (bool, error) {
-// 	cfg, err := config.GetConfig()
-// 	if err != nil {
-// 		return false, err
-// 	}
-
-// 	k8s, err := kubernetes.NewForConfig(cfg)
-// 	if err != nil {
-// 		return false, err
-// 	}
-
-// 	gv := schema.GroupVersion{
-// 		Group:   group,
-// 		Version: version,
-// 	}
-
-// 	if err = discovery.ServerSupportsVersion(k8s, gv); err != nil {
-// 		return false, nil
-// 	}
-
-// 	return true, nil
-// }
-
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	// utilruntime.Must(routev1.AddToScheme(scheme))
 	utilruntime.Must(pgov1.AddToScheme(scheme))
 	utilruntime.Must(petsv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
-
-	// isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
-	// if isOpenShiftCluster {
-	// 	utilruntime.Must(routev1.AddToScheme(scheme))
-	// } else if err != nil {
-	// 	println("Ingress to Scheme")
-	// }
 }
 
 func main() {
@@ -103,17 +73,6 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	// ** check cluster type **
-	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
-	if err != nil {
-		return
-	}
-
-	// ** add route to scheme if OpenShift cluster **
-	if isOpenShiftCluster {
-		utilruntime.Must(routev1.AddToScheme(scheme))
-	}
-
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
@@ -126,6 +85,13 @@ func main() {
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
+	}
+
+	if controllers.IsRouteAPIAvailable() {
+		if err := routev1.Install(mgr.GetScheme()); err != nil {
+			setupLog.Error(err, "")
+			os.Exit(1)
+		}
 	}
 
 	if err = (&controllers.BestieReconciler{
@@ -152,28 +118,4 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-}
-
-// ** verify cluster type function **
-func verifyOpenShiftCluster(group string, version string) (bool, error) {
-	cfg, err := config.GetConfig()
-	if err != nil {
-		return false, err
-	}
-
-	k8s, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return false, err
-	}
-
-	gv := schema.GroupVersion{
-		Group:   group,
-		Version: version,
-	}
-
-	if err = discovery.ServerSupportsVersion(k8s, gv); err != nil {
-		return false, nil
-	}
-
-	return true, nil
 }

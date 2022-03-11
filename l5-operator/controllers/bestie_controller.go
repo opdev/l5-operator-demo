@@ -30,7 +30,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
+	// rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -43,6 +43,8 @@ import (
 	controller "sigs.k8s.io/controller-runtime/pkg/controller"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -174,59 +176,43 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		// TODO: should we update then?
 	}
 
-	sa := &corev1.ServiceAccount{}
+	// sa := &corev1.ServiceAccount{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-sa", Namespace: bestie.Namespace}, sa)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating a new service account for bestie")
-			fileName := "config/resources/bestie-sa.yaml"
-			r.applyManifests(ctx, req, bestie, sa, fileName)
-		} else {
-			return ctrl.Result{Requeue: true}, err
-		}
-	}
-
-	clusterrole := &rbacv1.ClusterRole{}
-
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-clusterrole", Namespace: bestie.Namespace}, clusterrole)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating a new ClusterRole for bestie")
-			fileName := "config/resources/bestie-clusterrole.yaml"
-			r.applyManifests(ctx, req, bestie, clusterrole, fileName)
-		} else {
-			return ctrl.Result{Requeue: true}, err
-		}
-	}
-
-	crb := &rbacv1.ClusterRoleBinding{}
-
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-crb", Namespace: bestie.Namespace}, crb)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating a new ClusterRoleBindinging for bestie")
-			fileName := "config/resources/bestie-crb.yaml"
-			r.applyManifests(ctx, req, bestie, crb, fileName)
-		} else {
-			return ctrl.Result{Requeue: true}, err
-		}
-	}
-
-	// reconcile route
-
-	// route := &routev1.Route{}
-
-	// err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
+	// err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-sa", Namespace: bestie.Namespace}, sa)
 	// if err != nil {
 	// 	if errors.IsNotFound(err) {
-	// 		log.Info("Creating a new route for bestie")
-	// 		fileName := "config/resources/bestie-route.yaml"
-	// 		r.applyManifests(ctx, req, bestie, route, fileName)
+	// 		log.Info("Creating a new service account for bestie")
+	// 		fileName := "config/resources/bestie-sa.yaml"
+	// 		r.applyManifests(ctx, req, bestie, sa, fileName)
 	// 	} else {
 	// 		return ctrl.Result{Requeue: true}, err
 	// 	}
-	// 	// TODO: should we update then?
+	// }
+
+	// clusterrole := &rbacv1.ClusterRole{}
+
+	// err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-clusterrole", Namespace: bestie.Namespace}, clusterrole)
+	// if err != nil {
+	// 	if errors.IsNotFound(err) {
+	// 		log.Info("Creating a new ClusterRole for bestie")
+	// 		fileName := "config/resources/bestie-clusterrole.yaml"
+	// 		r.applyManifests(ctx, req, bestie, clusterrole, fileName)
+	// 	} else {
+	// 		return ctrl.Result{Requeue: true}, err
+	// 	}
+	// }
+
+	// crb := &rbacv1.ClusterRoleBinding{}
+
+	// err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-crb", Namespace: bestie.Namespace}, crb)
+	// if err != nil {
+	// 	if errors.IsNotFound(err) {
+	// 		log.Info("Creating a new ClusterRoleBindinging for bestie")
+	// 		fileName := "config/resources/bestie-crb.yaml"
+	// 		r.applyManifests(ctx, req, bestie, crb, fileName)
+	// 	} else {
+	// 		return ctrl.Result{Requeue: true}, err
+	// 	}
 	// }
 
 	// Checking to see if cluster is an OpenShift cluster
@@ -238,6 +224,9 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	// If the cluster is OpenShift, add a route, else add an ingress
 	if isOpenShiftCluster {
+
+		utilruntime.Must(routev1.AddToScheme(runtime.NewScheme()))
+
 		route := &routev1.Route{}
 		err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
 		if err != nil {
@@ -277,17 +266,33 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&petsv1.Bestie{}).
-		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{}).
-		Owns(&routev1.Route{}).
-		Owns(&networkv1.Ingress{}).
-		Owns(&corev1.ServiceAccount{}).
-		Owns(&rbacv1.ClusterRole{}).
-		Owns(&rbacv1.ClusterRoleBinding{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 2}).
-		Complete(r)
+	builder := ctrl.NewControllerManagedBy(mgr)
+	builder.For(&petsv1.Bestie{})
+	builder.Owns(&appsv1.Deployment{})
+	builder.Owns(&corev1.Service{})
+	builder.Owns(&networkv1.Ingress{})
+	if IsRouteAPIAvailable() {
+		builder.Owns(&routev1.Route{})
+	}
+	builder.WithOptions(controller.Options{MaxConcurrentReconciles: 2})
+
+	return builder.Complete(r)
+}
+
+var routeAPIFound = false
+
+func IsRouteAPIAvailable() bool {
+	verifyRouteAPI()
+	return routeAPIFound
+}
+
+func verifyRouteAPI() error {
+	found, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
+	if err != nil {
+		return err
+	}
+	routeAPIFound = found
+	return nil
 }
 
 func verifyOpenShiftCluster(group string, version string) (bool, error) {

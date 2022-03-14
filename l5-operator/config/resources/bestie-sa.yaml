@@ -1,5 +1,0 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: bestie-sa
-  # namespace: bestie-namespace

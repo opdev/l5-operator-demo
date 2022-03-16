@@ -35,7 +35,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -45,6 +44,12 @@ type BestieReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
+
+const (
+	BestieDefaultImage   = "quay.io/mkong/bestiev2"
+	BestieDefaultVersion = "1.1"
+	BestieName           = "bestie"
+)
 
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties/status,verbs=get;update;patch
@@ -78,12 +83,10 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	//var result *reconcile.Result
-
 	// reconcile Postgres
 	pgo := &pgov1.PostgresCluster{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-pgo", Namespace: bestie.Namespace}, pgo)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-pgo", Namespace: bestie.Namespace}, pgo)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new PGC for bestie")
@@ -92,13 +95,11 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	// reconcile Deployment
 	dp := &appsv1.Deployment{}
-
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new app for bestie")
@@ -107,21 +108,28 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
-	//isApprunning
+	//isAppRunning
 	bestieRunning := r.isRunning(ctx, bestie)
 
 	if !bestieRunning {
 		// If bestie-app isn't running yet, requeue the reconcile
 		// to run again after a delay
-		delay := time.Second * time.Duration(5)
+		delay := time.Second * time.Duration(15)
 
-		log.Info(fmt.Sprintf("bestie-app isn't running, waiting for %s", delay))
-		return reconcile.Result{RequeueAfter: delay}, nil
+		log.Info(fmt.Sprintf("bestie-app is instantiating, waiting for %s", delay))
+		return ctrl.Result{RequeueAfter: delay}, nil
 	}
-	//update status
+
+	//Level 2 : update Operand
+	err = r.upgradeOperand(ctx, bestie)
+	if err != nil {
+		log.Error(err, "Failed to upgrade the operand")
+		return ctrl.Result{Requeue: true}, err
+	}
+
+	//Level 1 : update appVersion status
 	appVersion := r.reportappversion(bestie)
 	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
 		bestie.Status.AppVersion = appVersion
@@ -129,13 +137,21 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		err := r.Status().Update(ctx, bestie)
 		if err != nil {
 			log.Error(err, "Failed to update app-version status")
-			return ctrl.Result{}, err
+			return ctrl.Result{Requeue: true}, err
 		}
 	}
 
+	//Level 1 : update application status
+	err = r.updateApplicationStatus(ctx, bestie)
+	if err != nil {
+		log.Error(err, "Failed to update bestie application status")
+		return ctrl.Result{Requeue: true}, err
+	}
+
+	//seed the database - as long as the postgres app is up and running this can run
 	job := &batchv1.Job{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-job", Namespace: bestie.Namespace}, job)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-job", Namespace: bestie.Namespace}, job)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new job for bestie")
@@ -144,14 +160,12 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	// reconcile service
-
 	svc := &corev1.Service{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-service", Namespace: bestie.Namespace}, svc)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-service", Namespace: bestie.Namespace}, svc)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new service for bestie")
@@ -160,14 +174,12 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	// reconcile route
-
 	route := &routev1.Route{}
 
-	err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-route", Namespace: bestie.Namespace}, route)
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-route", Namespace: bestie.Namespace}, route)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new route for bestie")
@@ -176,7 +188,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
-		// TODO: should we update then?
 	}
 
 	return ctrl.Result{}, nil

@@ -12,7 +12,9 @@ metadata:
           },
           "spec": {
             "agencyname": "Animal Humane Society",
-            "size": 2
+            "image": "quay.io/mkong/bestiev2",
+            "size": 2,
+            "version": "2.0"
           }
         }
       ]

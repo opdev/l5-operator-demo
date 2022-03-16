@@ -5,4 +5,4 @@ metadata:
 spec:
   size: 2
   image: quay.io/mkong/bestiev2
-  version: "10.0"
+  version: "2.0"

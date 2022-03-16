@@ -28,17 +28,17 @@ type BestieSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Bestie. Edit bestie_types.go to remove/update
-	Size    int32  `json:"size"`
-	Image   string `json:"image,omitempty"`
-	Version string `json:"version,omitempty"`
+	Size       int32  `json:"size"`
+	Image      string `json:"image,omitempty"`
+	Version    string `json:"version,omitempty"`
 }
 
 // BestieStatus defines the observed state of Bestie
 type BestieStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PodStatus  string `json:"podstatus"`
+
+	AppStatus  string `json:"appstatus"`
 	AppVersion string `json:"appversion"`
 }
 
@@ -49,8 +49,10 @@ type BestieStatus struct {
 type Bestie struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              BestieSpec   `json:"spec,omitempty"`
-	Status            BestieStatus `json:"status,omitempty"`
+	
+	Spec   BestieSpec   `json:"spec,omitempty"`
+	Status BestieStatus `json:"status,omitempty"`
+
 }
 
 //+kubebuilder:object:root=true

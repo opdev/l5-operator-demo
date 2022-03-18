@@ -4,12 +4,12 @@ metadata:
   name: bestie-ingress
 spec:
   rules:
-  - host: pets.bestie.com
-    http:
+  - http:
       paths:
       - path: /
         pathType: Prefix
         backend:
-          serviceName: bestie-service
-          servicePort: 8000
- 
+          service:
+            name: bestie-service
+            port:
+              number: 8000

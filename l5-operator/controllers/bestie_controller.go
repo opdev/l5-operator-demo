@@ -207,16 +207,21 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	} else {
 		ingress := &networkv1.Ingress{}
 		err = r.Get(ctx, types.NamespacedName{Name: bestie.Name + "-ingress", Namespace: bestie.Namespace}, ingress)
-		if err != nil {
-			if errors.IsNotFound(err) {
-				log.Info("Creating a new ingress for bestie")
-				fileName := "config/resources/bestie-ingress.yaml"
-				r.applyManifests(ctx, req, bestie, ingress, fileName)
-			} else {
+		if err != nil && errors.IsNotFound(err) {
+
+			log.Info("Creating a new ingress for bestie")
+			fileName := "config/resources/bestie-ingress.yaml"
+			err = r.applyManifests(ctx, req, bestie, ingress, fileName)
+
+			if err != nil {
 				log.Error(err, "Failed to get ingress.")
 				return ctrl.Result{Requeue: true}, err
 			}
-		} else {
+
+			log.Info("Ingress Created Successfully", "Ingress.Namespace", ingress.Namespace, "Ingress.Name", ingress.Name)
+			return ctrl.Result{Requeue: true}, nil
+
+		} else if err != nil {
 			log.Error(err, "Failed to get Ingress")
 			return ctrl.Result{}, err
 		}

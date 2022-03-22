@@ -14,5 +14,4 @@ spec:
   selector:
     app: bestie
   type: LoadBalancer
-status:
-  loadBalancer: {}
+

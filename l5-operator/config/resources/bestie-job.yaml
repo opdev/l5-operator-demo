@@ -8,7 +8,7 @@ spec:
   template:
     spec:
       containers:
-      - image: quay.io/mkong/bestiev2:1.1
+      - image: quay.io/mkong/bestiev2:1.2.2
         name: bestie-job
         command: ["/bin/sh",  "-c", "flask db migrate & flask db upgrade & flask seed all"]
         env:
@@ -36,5 +36,3 @@ spec:
       Port:       8000
       restartPolicy: Never
   backoffLimit: 4
-  
-

@@ -24,7 +24,7 @@ spec:
           'until pg_isready -h $(DB_ADDR) -p 5432;
           do echo waiting for database; sleep 2; done;']
       containers:
-      - image: quay.io/mkong/bestiev2:1.1
+      - image: quay.io/mkong/bestiev2:1.2.2
         name: bestie
         env:
         - name: GUNICORN_CMD_ARGS

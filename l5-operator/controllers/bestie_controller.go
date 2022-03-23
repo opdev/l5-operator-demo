@@ -22,7 +22,6 @@ import (
 	"reflect"
 	"time"
 
-	//"time"
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -30,7 +29,6 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
-	// rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -42,12 +40,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	controller "sigs.k8s.io/controller-runtime/pkg/controller"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
-<<<<<<< HEAD
-=======
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
->>>>>>> compatability
 )
 
 var log = ctrllog.Log.WithName("controller_bestie")
@@ -58,17 +51,11 @@ type BestieReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-<<<<<<< HEAD
 const (
 	BestieDefaultImage   = "quay.io/mkong/bestiev2"
-	BestieDefaultVersion = "1.1"
+	BestieDefaultVersion = "1.2.2"
 	BestieName           = "bestie"
 )
-=======
-type Cluster struct {
-	ClusterType string `json:"clusterType,omitempty"`
-}
->>>>>>> compatability
 
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties/status,verbs=get;update;patch
@@ -219,9 +206,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				return ctrl.Result{Requeue: true}, err
 			}
 			// TODO: should we update then?
-		} else {
-			log.Error(err, "Failed to get Route")
-			return ctrl.Result{}, err
 		}
 	} else {
 		ingress := &networkv1.Ingress{}

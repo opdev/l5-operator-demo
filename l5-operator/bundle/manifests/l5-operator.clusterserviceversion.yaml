@@ -11,7 +11,6 @@ metadata:
             "name": "bestie"
           },
           "spec": {
-            "agencyname": "Animal Humane Society",
             "image": "quay.io/mkong/bestiev2",
             "size": 2,
             "version": "2.0"
@@ -42,6 +41,40 @@ spec:
       clusterPermissions:
       - rules:
         - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          - endpoints
+          - events
+          - namespaces
+          - persistentvolumeclaims
+          - pods
+          - secrets
+          - serviceaccounts
+          - services
+          - services/finalizers
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - replicasets
+          verbs:
+          - '*'
+        - apiGroups:
+          - batch
+          resources:
+          - jobs
+          verbs:
+          - '*'
+        - apiGroups:
+          - networking.k8s.io
+          resources:
+          - ingresses
+          verbs:
+          - '*'
+        - apiGroups:
           - pets.bestie.com
           resources:
           - besties
@@ -67,6 +100,18 @@ spec:
           - get
           - patch
           - update
+        - apiGroups:
+          - postgres-operator.crunchydata.com
+          resources:
+          - postgresclusters
+          verbs:
+          - '*'
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes
+          verbs:
+          - '*'
         - apiGroups:
           - authentication.k8s.io
           resources:
@@ -114,7 +159,7 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
-                image: controller:latest
+                image: quay.io/rocrisp/controller.1.5:latest
                 livenessProbe:
                   httpGet:
                     path: /healthz

@@ -60,6 +60,12 @@ const (
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties/finalizers,verbs=update
+//+kubebuilder:rbac:groups=apps,resources=deployments;replicasets,verbs=*
+//+kubebuilder:rbac:groups=networking.k8s.io,resources=ingresses,verbs=*
+//+kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=*
+//+kubebuilder:rbac:groups="",resources=configmaps;endpoints;events;persistentvolumeclaims;pods;namespaces;secrets;serviceaccounts;services;services/finalizers,verbs=*
+//+kubebuilder:rbac:groups=postgres-operator.crunchydata.com,resources=postgresclusters,verbs=*
+//+kubebuilder:rbac:groups=batch,resources=jobs,verbs=*
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

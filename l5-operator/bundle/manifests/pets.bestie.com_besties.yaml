@@ -37,8 +37,6 @@ spec:
               image:
                 type: string
               size:
-                description: Foo is an example field of Bestie. Edit bestie_types.go
-                  to remove/update
                 format: int32
                 type: integer
               version:
@@ -52,9 +50,6 @@ spec:
               appstatus:
                 type: string
               appversion:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
                 type: string
             required:
             - appstatus

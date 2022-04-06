@@ -31,7 +31,7 @@ spec:
       kind: Bestie
       name: besties.pets.bestie.com
       version: v1
-  description:
+  description: |
 
     ## Usage
 
@@ -44,10 +44,10 @@ spec:
     The L5 operator works alongside the Crunchy Data PostgreSQL operator. Before installing the L5 operator, we highly encourage
     you to install the Crunchy Data PostgreSQL operator beforehand. You can easily install the Crunchy Data PostgreSQL operator
     via the OpenShift Container Platform when running on an OpenShift cluster or you can follow the directions [here](https://access.crunchydata.com/documentation/postgres-operator/4.7.5/installation/postgres-operator/)
-    provided by the Crunchy Data teamto install the Crunchy Data PostgreSQL operator, if you are running your application on a
+    provided by the Crunchy Data team to install the Crunchy Data PostgreSQL operator, if you are running your application on a
     vanilla Kubernetes cluster.
 
-    See the [documentation]and examples on [github](https://github.com/opdev/l5-operator-demo) for more information.
+    See the documentation and examples on [github](https://github.com/opdev/l5-operator-demo) for more information.
 
   displayName: L5 Operator
   icon:

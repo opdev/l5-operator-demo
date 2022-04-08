@@ -17,9 +17,13 @@ metadata:
           }
         }
       ]
-    capabilities: Basic Install
+    capabilities: Full Lifecycle
+    certified: "false"
+    description: L5 Operator is a demo operator that aims to exhibits level 5 capabilities for web applications.
     operators.operatorframework.io/builder: operator-sdk-v1.16.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
+    repository: https://github.com/opdev/l5-operator-demo
+    support: L5
   name: l5-operator.v0.0.3
   namespace: placeholder
 spec:

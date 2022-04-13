@@ -28,9 +28,9 @@ type BestieSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Size       int32  `json:"size"`
-	Image      string `json:"image,omitempty"`
-	Version    string `json:"version,omitempty"`
+	Size    int32  `json:"size"`
+	Image   string `json:"image,omitempty"`
+	Version string `json:"version,omitempty"`
 }
 
 // BestieStatus defines the observed state of Bestie
@@ -49,10 +49,9 @@ type BestieStatus struct {
 type Bestie struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	
+
 	Spec   BestieSpec   `json:"spec,omitempty"`
 	Status BestieStatus `json:"status,omitempty"`
-
 }
 
 //+kubebuilder:object:root=true

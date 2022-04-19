@@ -3,6 +3,6 @@ kind: Bestie
 metadata:
   name: bestie
 spec:
-  size: 2
+  size: 5
   image: quay.io/mkong/bestiev2
-  version: "2.0"
+  version: "1.3"

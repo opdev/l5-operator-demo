@@ -47,7 +47,7 @@ func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie)
 			return false
 		}
 	}
-	if dp.Status.ReadyReplicas == 1 {
+	if dp.Status.ReadyReplicas >= 1 {
 		return true
 	}
 	return false
@@ -126,26 +126,30 @@ func (r *BestieReconciler) upgradeOperand(ctx context.Context, bestie *petsv1.Be
 		}
 	}
 
-	//compare deployment container image to bestie spec image+version
+	//compare current container image to spec image
 	bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0].Image, getBestieContainerImage(bestie))
 
 	if bestieImageDifferent {
-		log.Info("Upgrade Operand")
-		dp.Spec.Template.Spec.Containers[0].Image = getBestieContainerImage(bestie)
+		if bestieImageDifferent {
+			log.Info("Upgrade Operand")
+			dp.Spec.Template.Spec.Containers[0].Image = getBestieContainerImage(bestie)
+		}
 		err = r.Client.Update(ctx, dp)
 		if err != nil {
-			log.Error(err, "Need to update, but failed to update bestie image")
+			log.Error(err, "Deployment failed.")
 			return err
 		}
+		// Level 4 Add metrics
+		applicationUpgradeCounter.Inc()
 	}
 	return nil
 }
 
 // getPodNames returns the pod names of the array of pods passed in
 func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *petsv1.Bestie) error {
-	var bestiePodStatus string
 
 	podList := &corev1.PodList{}
+
 	listOpts := []client.ListOption{
 		client.InNamespace(bestie.Namespace),
 		client.MatchingLabels{"app": "bestie"},
@@ -155,24 +159,31 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 		return err
 	}
 
-	for _, pod := range podList.Items {
-		podName := pod.GetName()
+	//Update status if needed
+	appStatus := getPodNamesandStatuses(podList.Items)
 
-		if strings.Contains(podName, "-app") {
-			bestiePodStatus = string(pod.Status.Phase)
-			bestieStatusDifferent := !reflect.DeepEqual(bestie.Status.AppStatus, bestiePodStatus)
-			if bestieStatusDifferent {
-				log.Info("Update bestie application status")
-				bestie.Status.AppStatus = bestiePodStatus
-				err := r.Status().Update(ctx, bestie)
-				if err != nil {
-					log.Error(err, "Failed to update bestie application status")
-					return err
-				}
-			}
-		} else {
-			fmt.Println("The substring is not present in the string.")
+	fmt.Printf("%v", appStatus)
+
+	bestieStatusDifferent := !reflect.DeepEqual(appStatus, bestie.Status.PodStatus)
+	if bestieStatusDifferent {
+		log.Info("Update bestie application status")
+		bestie.Status.PodStatus = appStatus
+		err := r.Status().Update(ctx, bestie)
+		if err != nil {
+			log.Error(err, "Failed to update bestie application status")
+			return err
 		}
 	}
 	return nil
+}
+
+// getPodNameandStatuses returns the pod names+status of the array of pods passed in
+func getPodNamesandStatuses(pods []corev1.Pod) []string {
+	var podNamesStatus []string
+	var podStat string
+	for _, pod := range pods {
+		podStat = pod.Name + " : " + string(pod.Status.Phase)
+		podNamesStatus = append(podNamesStatus, podStat)
+	}
+	return podNamesStatus
 }

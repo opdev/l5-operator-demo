@@ -9,6 +9,7 @@ spec:
   ports:
   - protocol: TCP
     port: 80
+    name: metrics
     targetPort: 8000
   selector:
     app: bestie

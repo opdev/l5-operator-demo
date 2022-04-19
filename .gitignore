@@ -16,3 +16,4 @@
 
 #ide specific files
 .idea
+.DS_Store

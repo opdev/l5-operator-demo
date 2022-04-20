@@ -46,7 +46,7 @@ spec:
 
     The L5 operator works alongside the Crunchy Data PostgreSQL operator. Before installing the L5 operator, we highly encourage
     you to install the Crunchy Data PostgreSQL operator beforehand. You can easily install the Crunchy Data PostgreSQL operator
-    via the OpenShift Container Platform when running on an OpenShift cluster or you can follow the directions [here](https://access.crunchydata.com/documentation/postgres-operator/4.7.5/installation/postgres-operator/)
+    via the OpenShift Container Platform when running on an OpenShift cluster or you can follow the directions [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/)
     provided by the Crunchy Data team to install the Crunchy Data PostgreSQL operator, if you are running your application on a
     vanilla Kubernetes cluster.
 

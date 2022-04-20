@@ -38,7 +38,6 @@ type BestieSpec struct {
 	// MaxReplicas sets an upper bound to the autoscaling feature. If MaxReplicas is set autoscaling is enabled.
 	// +optional
 	MaxReplicas *int32 `json:"maxReplicas,omitempty"`
-
 }
 
 // BestieStatus defines the observed state of Bestie
@@ -57,7 +56,7 @@ type BestieStatus struct {
 type Bestie struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	
+
 	Spec   BestieSpec   `json:"spec,omitempty"`
 	Status BestieStatus `json:"status,omitempty"`
 

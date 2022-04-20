@@ -1,5 +1,5 @@
 /*
-Copyright 2022.
+Copyright The L5 Operator Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,7 +23,9 @@ import (
 	"time"
 
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
+
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -103,45 +105,51 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new PGC for bestie")
 			fileName := "config/resources/postgrescluster.yaml"
-			r.applyManifests(ctx, req, bestie, pgo, fileName)
+			err := r.applyManifests(ctx, req, bestie, pgo, fileName)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
 
-	// reconcile Deployment
+	// reconcile Deployment.
 	dp := &appsv1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new app for bestie")
 			fileName := "config/resources/bestie-deploy.yaml"
-			r.applyManifests(ctx, req, bestie, dp, fileName)
+			err := r.applyManifests(ctx, req, bestie, dp, fileName)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
 
-	//isAppRunning
+	//isAppRunning.
 	bestieRunning := r.isRunning(ctx, bestie)
 
 	if !bestieRunning {
 		// If bestie-app isn't running yet, requeue the reconcile
-		// to run again after a delay
+		// to run again after a delay.
 		delay := time.Second * time.Duration(15)
 
 		log.Info(fmt.Sprintf("bestie-app is instantiating, waiting for %s", delay))
 		return ctrl.Result{RequeueAfter: delay}, nil
 	}
 
-	//Level 2 : update Operand
+	//Level 2 : update Operand.
 	err = r.upgradeOperand(ctx, bestie)
 	if err != nil {
 		log.Error(err, "Failed to upgrade the operand")
 		return ctrl.Result{Requeue: true}, err
 	}
 
-	//Level 1 : update appVersion status
+	//Level 1 : update appVersion status.
 	appVersion := r.reportappversion(bestie)
 	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
 		bestie.Status.AppVersion = appVersion
@@ -153,14 +161,14 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	//Level 1 : update application status
+	//Level 1 : update application status.
 	err = r.updateApplicationStatus(ctx, bestie)
 	if err != nil {
 		log.Error(err, "Failed to update bestie application status")
 		return ctrl.Result{Requeue: true}, err
 	}
 
-	//seed the database - as long as the postgres app is up and running this can run
+	//seed the database - as long as the postgres app is up and running this can run.
 	job := &batchv1.Job{}
 
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-job", Namespace: bestie.Namespace}, job)
@@ -168,13 +176,16 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new job for bestie")
 			fileName := "config/resources/bestie-job.yaml"
-			r.applyManifests(ctx, req, bestie, job, fileName)
+			err := r.applyManifests(ctx, req, bestie, job, fileName)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
 
-	// reconcile service
+	// reconcile service.
 	svc := &corev1.Service{}
 
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-service", Namespace: bestie.Namespace}, svc)
@@ -182,20 +193,23 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new service for bestie")
 			fileName := "config/resources/bestie-svc.yaml"
-			r.applyManifests(ctx, req, bestie, svc, fileName)
+			err := r.applyManifests(ctx, req, bestie, svc, fileName)
+			if err != nil {
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
 
-	// Checking to see if cluster is an OpenShift cluster
-	// Checks for this api "route.openshift.io/v1"
+	// Checking to see if cluster is an OpenShift cluster.
+	// Checks for this api "route.openshift.io/v1".
 	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// If the cluster is OpenShift, add a route, else add an ingress
+	// If the cluster is OpenShift, add a route, else add an ingress.
 	if isOpenShiftCluster {
 
 		utilruntime.Must(routev1.AddToScheme(runtime.NewScheme()))
@@ -206,7 +220,10 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			if errors.IsNotFound(err) {
 				log.Info("Creating a new route for bestie")
 				fileName := "config/resources/bestie-route.yaml"
-				r.applyManifests(ctx, req, bestie, route, fileName)
+				err := r.applyManifests(ctx, req, bestie, route, fileName)
+				if err != nil {
+					return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+				}
 			} else {
 				log.Error(err, "Failed to get route.")
 				return ctrl.Result{Requeue: true}, err
@@ -257,7 +274,10 @@ func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 var routeAPIFound = false
 
 func IsRouteAPIAvailable() bool {
-	verifyRouteAPI()
+	err := verifyRouteAPI()
+	if err != nil {
+		return false
+	}
 	return routeAPIFound
 }
 

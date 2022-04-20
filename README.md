@@ -6,10 +6,10 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 
 - The L5 Operator requires ingress controller to be installed if running in k8s cluster.
 - Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
-
+  
 # Installation
 
-#### Make sure to install Crunchy Data Postgres Operator before installing the L5 operator. 
+#### Make sure to install Crunchy Data Postgres Operator before installing the L5 operator
 
 - Crunchy Data Postgres Operator can be directly installed from the [Openshift Container Platform](https://oauth-openshift.apps.eng.opdev.io/oauth/authorize?client_id=console&redirect_uri=https%3A%2F%2Fconsole-openshift-console.apps.eng.opdev.io%2Fauth%2Fcallback&response_type=code&scope=user%3Afull&state=d933ad0d), when running the application on an Openshift Cluster.
 - While running on a vanilla kubernetes, follow the steps from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/) to install the Crunchy Data Postgres Operator.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	autoscalingv2 "k8s.io/api/autoscaling/v2"
+	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -14,16 +14,16 @@ import (
 	v1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 )
 
-func (r *BestieReconciler) applyHorizontalPodAutoscalers(ctx context.Context, bestie v1.Bestie, expected []autoscalingv2.HorizontalPodAutoscaler) error {
+func (r *BestieReconciler) applyHorizontalPodAutoscalers(ctx context.Context, bestie v1.Bestie, expected []autoscalingv1.HorizontalPodAutoscaler) error {
 	log := ctrllog.FromContext(ctx)
 
 	for _, rec := range expected {
-		desired := rec 
+		desired := rec
 
 		if err := controllerutil.SetControllerReference(bestie.DeepCopy(), &desired, r.Scheme); err != nil {
-			fmt.Errorf("failed to find the controller reference: %w", err)
+			return fmt.Errorf("failed to find the controller reference: %w", err)
 		}
-		existing := &autoscalingv2.HorizontalPodAutoscaler{}
+		existing := &autoscalingv1.HorizontalPodAutoscaler{}
 		dNameSpace := types.NamespacedName{Namespace: desired.Namespace, Name: desired.Name}
 		err := r.Client.Get(ctx, dNameSpace, existing)
 		if k8serrors.IsNotFound(err) {
@@ -32,7 +32,7 @@ func (r *BestieReconciler) applyHorizontalPodAutoscalers(ctx context.Context, be
 			}
 			log.V(2).Info("created", "HPA.Name", desired.Name, "HPA.NameSpace", desired.Namespace)
 			continue
-		} else if err != nil  {
+		} else if err != nil {
 			return fmt.Errorf("failed to get %w", err)
 		}
 
@@ -49,7 +49,7 @@ func (r *BestieReconciler) applyHorizontalPodAutoscalers(ctx context.Context, be
 		if bestie.Spec.MaxReplicas != nil {
 			updated.Spec.MaxReplicas = *bestie.Spec.MaxReplicas
 		}
-		
+
 		for k, v := range desired.Annotations {
 			updated.Annotations[k] = v
 		}

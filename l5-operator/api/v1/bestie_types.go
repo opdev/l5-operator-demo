@@ -28,10 +28,10 @@ type BestieSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Size       int32  `json:"size"`
-	Image      string `json:"image,omitempty"`
-	Version    string `json:"version,omitempty"`
-	// Replicas is the number of pod instances for Bestie Deployment 
+	Size    int32  `json:"size"`
+	Image   string `json:"image,omitempty"`
+	Version string `json:"version,omitempty"`
+	// Replicas is the number of pod instances for Bestie Deployment
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
 
@@ -59,7 +59,6 @@ type Bestie struct {
 
 	Spec   BestieSpec   `json:"spec,omitempty"`
 	Status BestieStatus `json:"status,omitempty"`
-
 }
 
 //+kubebuilder:object:root=true

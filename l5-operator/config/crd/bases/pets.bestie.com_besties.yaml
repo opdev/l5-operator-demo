@@ -38,6 +38,15 @@ spec:
             properties:
               image:
                 type: string
+              maxReplicas:
+                description: MaxReplicas sets an upper bound to the autoscaling feature.
+                  If MaxReplicas is set autoscaling is enabled.
+                format: int32
+                type: integer
+              replicas:
+                description: Replicas is the number of pod instances for Bestie Deployment
+                format: int32
+                type: integer
               size:
                 format: int32
                 type: integer

@@ -1,5 +1,5 @@
 /*
-Copyright 2022.
+Copyright The L5 Operator Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,14 +28,17 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
+
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
-	"github.com/opdev/l5-operator-demo/l5-operator/controllers"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	"github.com/opdev/l5-operator-demo/l5-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 

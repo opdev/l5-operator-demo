@@ -1,5 +1,5 @@
 /*
-Copyright 2022.
+Copyright The L5 Operator Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,18 +24,18 @@ import (
 	"strings"
 
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// Returns true if readyReplicas=1
+// Returns true if readyReplicas=1.
 func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
 	dp := &appsv1.Deployment{}
 
@@ -62,7 +62,7 @@ func (r *BestieReconciler) reportappversion(bestie *petsv1.Bestie) string {
 	return tag
 }
 
-func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
+func (r *BestieReconciler) applyManifests(ctx context.Context, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
 
 	Log := ctrllog.FromContext(ctx)
 
@@ -79,7 +79,10 @@ func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request,
 
 	obj.SetNamespace(bestie.GetNamespace())
 
-	controllerutil.SetControllerReference(bestie, obj, r.Scheme)
+	err = controllerutil.SetControllerReference(bestie, obj, r.Scheme)
+	if err != nil {
+		return err
+	}
 
 	err = r.Client.Create(ctx, obj)
 	if err != nil {
@@ -141,7 +144,7 @@ func (r *BestieReconciler) upgradeOperand(ctx context.Context, bestie *petsv1.Be
 	return nil
 }
 
-// getPodNames returns the pod names of the array of pods passed in
+// getPodNames returns the pod names of the array of pods passed in.
 func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *petsv1.Bestie) error {
 	var bestiePodStatus string
 

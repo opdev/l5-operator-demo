@@ -105,7 +105,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new PGC for bestie")
 			fileName := "config/resources/postgrescluster.yaml"
-			err := r.applyManifests(ctx, req, bestie, pgo, fileName)
+			err := r.applyManifests(ctx, bestie, pgo, fileName)
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
@@ -121,7 +121,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new app for bestie")
 			fileName := "config/resources/bestie-deploy.yaml"
-			err := r.applyManifests(ctx, req, bestie, dp, fileName)
+			err := r.applyManifests(ctx, bestie, dp, fileName)
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
@@ -176,7 +176,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new job for bestie")
 			fileName := "config/resources/bestie-job.yaml"
-			err := r.applyManifests(ctx, req, bestie, job, fileName)
+			err := r.applyManifests(ctx, bestie, job, fileName)
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
@@ -193,7 +193,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if errors.IsNotFound(err) {
 			log.Info("Creating a new service for bestie")
 			fileName := "config/resources/bestie-svc.yaml"
-			err := r.applyManifests(ctx, req, bestie, svc, fileName)
+			err := r.applyManifests(ctx, bestie, svc, fileName)
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
@@ -220,7 +220,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			if errors.IsNotFound(err) {
 				log.Info("Creating a new route for bestie")
 				fileName := "config/resources/bestie-route.yaml"
-				err := r.applyManifests(ctx, req, bestie, route, fileName)
+				err := r.applyManifests(ctx, bestie, route, fileName)
 				if err != nil {
 					return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 				}
@@ -237,7 +237,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 			log.Info("Creating a new ingress for bestie")
 			fileName := "config/resources/bestie-ingress.yaml"
-			err = r.applyManifests(ctx, req, bestie, ingress, fileName)
+			err = r.applyManifests(ctx, bestie, ingress, fileName)
 
 			if err != nil {
 				log.Error(err, "Failed to get ingress.")

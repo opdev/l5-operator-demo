@@ -24,12 +24,12 @@ import (
 	"strings"
 
 	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -62,7 +62,7 @@ func (r *BestieReconciler) reportappversion(bestie *petsv1.Bestie) string {
 	return tag
 }
 
-func (r *BestieReconciler) applyManifests(ctx context.Context, req ctrl.Request, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
+func (r *BestieReconciler) applyManifests(ctx context.Context, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
 
 	Log := ctrllog.FromContext(ctx)
 

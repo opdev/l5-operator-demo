@@ -1,5 +1,5 @@
 /*
-Copyright 2022.
+Copyright The L5 Operator Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,20 +23,20 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// BestieSpec defines the desired state of Bestie
+// BestieSpec defines the desired state of Bestie.
 type BestieSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster.
+	// Important: Run "make" to regenerate code after modifying this file.
 
 	Size    int32  `json:"size"`
 	Image   string `json:"image,omitempty"`
 	Version string `json:"version,omitempty"`
 }
 
-// BestieStatus defines the observed state of Bestie
+// BestieStatus defines the observed state of Bestie.
 type BestieStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster.
+	// Important: Run "make" to regenerate code after modifying this file.
 
 	AppStatus  string `json:"appstatus"`
 	AppVersion string `json:"appversion"`
@@ -45,7 +45,7 @@ type BestieStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Bestie is the Schema for the besties API
+// Bestie is the Schema for the besties API.
 type Bestie struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -56,7 +56,7 @@ type Bestie struct {
 
 //+kubebuilder:object:root=true
 
-// BestieList contains a list of Bestie
+// BestieList contains a list of Bestie.
 type BestieList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -56,7 +56,7 @@ type BestieReconciler struct {
 
 const (
 	BestieDefaultImage   = "quay.io/mkong/bestiev2"
-	BestieDefaultVersion = "1.2.2"
+	BestieDefaultVersion = "1.2.3"
 	BestieName           = "bestie"
 )
 
@@ -69,6 +69,7 @@ const (
 //+kubebuilder:rbac:groups="",resources=configmaps;endpoints;events;persistentvolumeclaims;pods;namespaces;secrets;serviceaccounts;services;services/finalizers,verbs=*
 //+kubebuilder:rbac:groups=postgres-operator.crunchydata.com,resources=postgresclusters,verbs=*
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=*
+//+kubebuilder:rbac:groups=monitoring.coreos.com,resources=prometheuses;servicemonitors,verbs=*
 // +kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -132,7 +133,22 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	//isAppRunning.
+	// Ensure the deployment size is the same as the spec
+	size := bestie.Spec.Size
+	if *dp.Spec.Replicas != size {
+		dp.Spec.Replicas = &size
+		err = r.Update(ctx, dp)
+		if err != nil {
+			log.Error(err, "Failed to update Deployment", "Deployment.Namespace", dp.Namespace, "Deployment.Name", dp.Name)
+			return ctrl.Result{}, err
+		}
+		// Ask to requeue after 1 minute in order to give enough time for the
+		// pods be created on the cluster side and the operand be able
+		// to do the next update step accurately.
+		return ctrl.Result{RequeueAfter: time.Minute}, nil
+	}
+
+	//isAppRunning
 	bestieRunning := r.isRunning(ctx, bestie)
 
 	if !bestieRunning {

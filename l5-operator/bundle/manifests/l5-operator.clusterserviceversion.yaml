@@ -12,8 +12,8 @@ metadata:
           },
           "spec": {
             "image": "quay.io/mkong/bestiev2",
-            "size": 2,
-            "version": "2.0"
+            "size": 5,
+            "version": "1.2"
           }
         }
       ]
@@ -85,6 +85,13 @@ spec:
           - batch
           resources:
           - jobs
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - prometheuses
+          - servicemonitors
           verbs:
           - '*'
         - apiGroups:
@@ -178,7 +185,7 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
-                image: quay.io/mkong/controller:2.0
+                image: quay.io/rocrisp/bestie-controller:2.2
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -241,9 +248,9 @@ spec:
         serviceAccountName: l5-operator-controller-manager
     strategy: deployment
   installModes:
-  - supported: false
+  - supported: true
     type: OwnNamespace
-  - supported: false
+  - supported: true
     type: SingleNamespace
   - supported: false
     type: MultiNamespace

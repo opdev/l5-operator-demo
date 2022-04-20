@@ -47,6 +47,13 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - prometheuses
+  - servicemonitors
+  verbs:
+  - '*'
+- apiGroups:
   - networking.k8s.io
   resources:
   - ingresses

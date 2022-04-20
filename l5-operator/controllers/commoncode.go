@@ -35,7 +35,7 @@ import (
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// Returns true if readyReplicas=1
+// Returns true if readyReplicas=1.
 func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
 	dp := &appsv1.Deployment{}
 
@@ -79,7 +79,10 @@ func (r *BestieReconciler) applyManifests(ctx context.Context, bestie *petsv1.Be
 
 	obj.SetNamespace(bestie.GetNamespace())
 
-	controllerutil.SetControllerReference(bestie, obj, r.Scheme)
+	err = controllerutil.SetControllerReference(bestie, obj, r.Scheme)
+	if err != nil {
+		return err
+	}
 
 	err = r.Client.Create(ctx, obj)
 	if err != nil {
@@ -141,7 +144,7 @@ func (r *BestieReconciler) upgradeOperand(ctx context.Context, bestie *petsv1.Be
 	return nil
 }
 
-// getPodNames returns the pod names of the array of pods passed in
+// getPodNames returns the pod names of the array of pods passed in.
 func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *petsv1.Bestie) error {
 	var bestiePodStatus string
 

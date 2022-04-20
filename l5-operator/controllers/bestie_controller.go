@@ -47,7 +47,7 @@ import (
 
 var log = ctrllog.Log.WithName("controller_bestie")
 
-// BestieReconciler reconciles a Bestie object
+// BestieReconciler reconciles a Bestie object.
 type BestieReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme

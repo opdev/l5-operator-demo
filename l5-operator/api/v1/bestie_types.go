@@ -1,5 +1,5 @@
 /*
-Copyright 2022.
+Copyright The L5 Operator Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,20 +23,27 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// BestieSpec defines the desired state of Bestie
+// BestieSpec defines the desired state of Bestie.
 type BestieSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster.
+	// Important: Run "make" to regenerate code after modifying this file.
 
 	Size    int32  `json:"size"`
 	Image   string `json:"image,omitempty"`
 	Version string `json:"version,omitempty"`
+	// Replicas is the number of pod instances for Bestie Deployment
+	// +optional
+	Replicas *int32 `json:"replicas,omitempty"`
+
+	// MaxReplicas sets an upper bound to the autoscaling feature. If MaxReplicas is set autoscaling is enabled.
+	// +optional
+	MaxReplicas *int32 `json:"maxReplicas,omitempty"`
 }
 
-// BestieStatus defines the observed state of Bestie
+// BestieStatus defines the observed state of Bestie.
 type BestieStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster.
+	// Important: Run "make" to regenerate code after modifying this file.
 
 	PodStatus  []string `json:"podstatus,omitempty"`
 	AppVersion string   `json:"appversion,omitempty"`
@@ -45,7 +52,7 @@ type BestieStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Bestie is the Schema for the besties API
+// Bestie is the Schema for the besties API.
 type Bestie struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -56,7 +63,7 @@ type Bestie struct {
 
 //+kubebuilder:object:root=true
 
-// BestieList contains a list of Bestie
+// BestieList contains a list of Bestie.
 type BestieList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

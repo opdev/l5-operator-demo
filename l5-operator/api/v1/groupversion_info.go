@@ -1,5 +1,5 @@
 /*
-Copyright 2022.
+Copyright The L5 Operator Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import (
 )
 
 var (
-	// GroupVersion is group version used to register these objects
+	// GroupVersion is group version used to register these objects.
 	GroupVersion = schema.GroupVersion{Group: "pets.bestie.com", Version: "v1"}
 
-	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
+	// SchemeBuilder is used to add go types to the GroupVersionKind scheme.
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
 
 	// AddToScheme adds the types in this group-version to the given scheme.

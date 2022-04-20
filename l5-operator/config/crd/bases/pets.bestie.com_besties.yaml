@@ -19,7 +19,7 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Bestie is the Schema for the besties API
+        description: Bestie is the Schema for the besties API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: BestieSpec defines the desired state of Bestie
+            description: BestieSpec defines the desired state of Bestie.
             properties:
               image:
                 type: string
@@ -47,7 +47,7 @@ spec:
             - size
             type: object
           status:
-            description: BestieStatus defines the observed state of Bestie
+            description: BestieStatus defines the observed state of Bestie.
             properties:
               appstatus:
                 type: string

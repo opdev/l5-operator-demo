@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: bestie-route
+spec:
+  port:
+    targetPort: 8000
+  to:
+    kind: Service
+    name: bestie-service
+    weight: 100
+  wildcardPolicy: None
+
+
+# fetch service get name of service
+# give route name of service
+# maybe best to write it in go the route to be able to to give name of service to route to reference
+# app top level domain name host
+# fetch the host ask Sid

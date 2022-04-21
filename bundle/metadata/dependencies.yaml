@@ -1,0 +1,6 @@
+---
+dependencies:
+  - type: olm.package
+    value:
+      packageName: crunchy-postgres-operator
+      version: "5.0.3"

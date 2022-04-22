@@ -33,7 +33,7 @@ func AutoScaler(logger logr.Logger, bestie v1.Bestie) autoscalingv1.HorizontalPo
 	cpuTarget := defaultCPUTarget
 	return autoscalingv1.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      bestie.Name,
+			Name:      bestie.Name + "hpa",
 			Namespace: bestie.Namespace,
 			Labels:    bestie.Labels,
 		},

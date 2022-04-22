@@ -202,6 +202,11 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
+	hpa := horizontalpodautoscalers(ctx, *bestie.DeepCopy(), r.Client, r.Scheme)
+
+	if hpa != nil {
+		return ctrl.Result{Requeue: true}, hpa
+	}
 
 	// reconcile service.
 	svc := &corev1.Service{}

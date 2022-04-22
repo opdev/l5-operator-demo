@@ -1,3 +1,19 @@
+/*
+Copyright The L5 Operator Authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package controllers
 
 import (
@@ -6,28 +22,45 @@ import (
 
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	cli "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	v1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+
+	"github.com/opdev/l5-operator-demo/l5-operator/pkg/hpa"
 )
 
-func (r *BestieReconciler) applyHorizontalPodAutoscalers(ctx context.Context, bestie v1.Bestie, expected []autoscalingv1.HorizontalPodAutoscaler) error {
+func horizontalpodautoscalers(ctx context.Context, bestie v1.Bestie, client cli.Client, r *runtime.Scheme) error {
+	desired := []autoscalingv1.HorizontalPodAutoscaler{}
+
+	if bestie.Spec.MaxReplicas != nil {
+		desired = append(desired, hpa.AutoScaler(ctrllog.Log, bestie))
+	}
+
+	if err := applyHorizontalPodAutoscalers(ctx, bestie, client, r, desired); err != nil {
+		return fmt.Errorf("failed to reconcile the expected horizontal pod autoscalers: %w", err)
+	}
+	return nil
+}
+
+func applyHorizontalPodAutoscalers(ctx context.Context, bestie v1.Bestie, client cli.Client, r *runtime.Scheme, expected []autoscalingv1.HorizontalPodAutoscaler) error {
+
 	log := ctrllog.FromContext(ctx)
 
 	for _, rec := range expected {
 		desired := rec
 
-		if err := controllerutil.SetControllerReference(bestie.DeepCopy(), &desired, r.Scheme); err != nil {
+		if err := controllerutil.SetControllerReference(bestie.DeepCopy(), &desired, r); err != nil {
 			return fmt.Errorf("failed to find the controller reference: %w", err)
 		}
 		existing := &autoscalingv1.HorizontalPodAutoscaler{}
 		dNameSpace := types.NamespacedName{Namespace: desired.Namespace, Name: desired.Name}
-		err := r.Client.Get(ctx, dNameSpace, existing)
+		err := client.Get(ctx, dNameSpace, existing)
 		if k8serrors.IsNotFound(err) {
-			if err := r.Client.Create(ctx, &desired); err != nil {
+			if err := client.Create(ctx, &desired); err != nil {
 				return fmt.Errorf("failed to create: %w", err)
 			}
 			log.V(2).Info("created", "HPA.Name", desired.Name, "HPA.NameSpace", desired.Namespace)
@@ -58,9 +91,9 @@ func (r *BestieReconciler) applyHorizontalPodAutoscalers(ctx context.Context, be
 			updated.Labels[k] = v
 		}
 
-		patch := client.MergeFrom(existing)
+		patch := cli.MergeFrom(existing)
 
-		if err := r.Client.Patch(ctx, updated, patch); err != nil {
+		if err := client.Patch(ctx, updated, patch); err != nil {
 			return fmt.Errorf("failed to apply changes: %w", err)
 		}
 

@@ -180,7 +180,7 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 	return nil
 }
 
-// getPodNameandStatuses returns the pod names+status of the array of pods passed in
+// getPodNameandStatuses returns the pod names+status of the array of pods passed in.
 func getPodNamesandStatuses(pods []corev1.Pod) []string {
 	var podNamesStatus []string
 	var podStat string

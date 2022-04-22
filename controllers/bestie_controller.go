@@ -203,6 +203,22 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
+	//Reconciling HPA.
+	hpa := &autoscalingv1.HorizontalPodAutoscaler{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-hpa", Namespace: bestie.Namespace}, hpa)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating New HPA Instance")
+			isHpa := horizontalpodautoscalers(ctx, *bestie.DeepCopy(), r.Client, r.Scheme)
+			if isHpa != nil {
+				return ctrl.Result{Requeue: true}, isHpa
+			}
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
 	// reconcile service.
 	svc := &corev1.Service{}
 

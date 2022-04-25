@@ -8,5 +8,6 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 - Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
 
 # High Level Deployment Diagram
+
+An editable version of this diagram is on google drive via [draw.io](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)
 ![Deployment Diagram](docs/hld.svg)
-[source](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)

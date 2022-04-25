@@ -6,3 +6,6 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 
 - The L5 Operator requires ingress controller to be installed if running in k8s cluster.
 - Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
+
+# High Level Deployment Diagram
+![Deployment Diagram](docs/hld.svg)

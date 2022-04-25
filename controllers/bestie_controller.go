@@ -119,7 +119,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	// wait for postgres to come up
 	var postgresReady = false
-	if pgo.Status.InstanceSets != nil && len(pgo.Status.InstanceSets) > 0 && pgo.Status.InstanceSets[0].ReadyReplicas >= 3 {
+	if pgo.Status.InstanceSets != nil && len(pgo.Status.InstanceSets) > 0 && pgo.Status.InstanceSets[0].ReadyReplicas >= 1 {
 		postgresReady = true
 	}
 	if !postgresReady {
@@ -180,19 +180,19 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	//Level 1 : update appVersion status.
-	appVersion := r.reportappversion(bestie)
+	appVersion := r.getDeployedBestieVersion(ctx, bestie)
 	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
 		bestie.Status.AppVersion = appVersion
 		log.Info("update app version status")
 		err := r.Status().Update(ctx, bestie)
 		if err != nil {
 			log.Error(err, "Failed to update app-version status")
-			return ctrl.Result{Requeue: true}, err
+			return ctrl.Result{}, err
 		}
 	}
 
 	//Level 1 : update application status.
-	err = r.updateApplicationStatus(ctx, bestie)
+	_, err = r.updateApplicationStatus(ctx, bestie)
 	if err != nil {
 		log.Error(err, "Failed to update bestie application status")
 		return ctrl.Result{Requeue: true}, err

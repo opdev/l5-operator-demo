@@ -10,4 +10,5 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 # High Level Deployment Diagram
 
 An editable version of this diagram is on google drive via [draw.io](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)
+
 ![Deployment Diagram](docs/hld.svg)

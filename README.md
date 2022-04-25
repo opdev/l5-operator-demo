@@ -9,3 +9,4 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 
 # High Level Deployment Diagram
 ![Deployment Diagram](docs/hld.svg)
+[source](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)

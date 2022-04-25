@@ -117,6 +117,18 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
+	// wait for postgres to come up
+	var postgresReady = false
+	if pgo.Status.InstanceSets != nil && len(pgo.Status.InstanceSets) > 0 && pgo.Status.InstanceSets[0].ReadyReplicas >= 3 {
+		postgresReady = true
+	}
+	if !postgresReady {
+		// If postgres is not ready yet, requeue after delay seconds.
+		delay := time.Second * time.Duration(15)
+		log.Info(fmt.Sprintf("postgres is instantiating, waiting for %s", delay))
+		return ctrl.Result{RequeueAfter: delay}, nil
+	}
+
 	// reconcile Deployment.
 	dp := &appsv1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)
@@ -149,7 +161,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	//isAppRunning
-	bestieRunning := r.isRunning(ctx, bestie)
+	bestieRunning := r.isBestieRunning(ctx, bestie)
 
 	if !bestieRunning {
 		// If bestie-app isn't running yet, requeue the reconcile
@@ -203,22 +215,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	//Reconciling HPA.
-	hpa := &autoscalingv1.HorizontalPodAutoscaler{}
-
-	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-hpa", Namespace: bestie.Namespace}, hpa)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating New HPA Instance")
-			isHpa := horizontalpodautoscalers(ctx, *bestie.DeepCopy(), r.Client, r.Scheme)
-			if isHpa != nil {
-				return ctrl.Result{Requeue: true}, isHpa
-			}
-		} else {
-			return ctrl.Result{Requeue: true}, err
-		}
-	}
-
 	// reconcile service.
 	svc := &corev1.Service{}
 
@@ -230,6 +226,22 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			err := r.applyManifests(ctx, bestie, svc, fileName)
 			if err != nil {
 				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			}
+		} else {
+			return ctrl.Result{Requeue: true}, err
+		}
+	}
+
+	//Reconciling HPA.
+	hpa := &autoscalingv1.HorizontalPodAutoscaler{}
+
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-hpa", Namespace: bestie.Namespace}, hpa)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Info("Creating New HPA Instance")
+			isHpa := horizontalpodautoscalers(ctx, *bestie.DeepCopy(), r.Client, r.Scheme)
+			if isHpa != nil {
+				return ctrl.Result{Requeue: true}, isHpa
 			}
 		} else {
 			return ctrl.Result{Requeue: true}, err

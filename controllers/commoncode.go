@@ -36,7 +36,7 @@ import (
 )
 
 // Returns true if readyReplicas=1.
-func (r *BestieReconciler) isRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
+func (r *BestieReconciler) isBestieRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
 	dp := &appsv1.Deployment{}
 
 	err := r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)

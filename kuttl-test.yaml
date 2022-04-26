@@ -1,0 +1,13 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestSuite
+crdDir: ./tests/_build/crds/
+artifactsDir: ./tests/_build/artifacts/
+kindContainers:
+  - local/bestie-operator:e2e
+commands:
+
+  
+
+testDirs:
+  - ./tests/e2e/
+timeout: 300

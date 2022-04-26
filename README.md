@@ -87,6 +87,3 @@ make deploy IMG=<some-registry>/<project-name>:tag
 ```
 operator-sdk run bundle <operator-bundle-image>
 ```
-
-### 4. Download from the Operator Hub [here](https://operatorhub.io/)
-

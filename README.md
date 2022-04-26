@@ -4,7 +4,7 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 
 # Requirements
 
-- - Install Crunchy Data Postgres Operator manually from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/), if you are not using OLM to install the L5 Operator
+- Install Crunchy Data Postgres Operator manually from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/), if you are not using OLM to install the L5 Operator
 
 # High Level Deployment Diagram
 

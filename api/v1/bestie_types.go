@@ -29,10 +29,10 @@ type BestieSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file.
 
 	// The size of the deployment
-	Size    int32  `json:"size"`
+	Size int32 `json:"size"`
 
 	// The bestie app image
-	Image   string `json:"image,omitempty"`
+	Image string `json:"image,omitempty"`
 
 	// The bestie app version
 	Version string `json:"version,omitempty"`
@@ -52,10 +52,10 @@ type BestieStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file.
 
 	// List of pods, their status and the image they use
-	PodStatus  []string `json:"podstatus,omitempty"`
+	PodStatus []string `json:"podstatus,omitempty"`
 
 	// Current version deployed
-	AppVersion string   `json:"appversion,omitempty"`
+	AppVersion string `json:"appversion,omitempty"`
 }
 
 //+kubebuilder:object:root=true

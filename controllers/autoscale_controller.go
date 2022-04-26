@@ -81,7 +81,7 @@ func applyHorizontalPodAutoscalers(ctx context.Context, bestie v1.Bestie, client
 		}
 
 		updated.OwnerReferences = desired.OwnerReferences
-		updated.Spec.MinReplicas = bestie.Spec.Size
+		updated.Spec.MinReplicas = &bestie.Spec.Size
 		if bestie.Spec.MaxReplicas != nil {
 			updated.Spec.MaxReplicas = *bestie.Spec.MaxReplicas
 		}

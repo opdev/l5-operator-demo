@@ -164,8 +164,8 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		//size = HorizontalPodAutoScalar.Spec.MinReplicas
 	} else {
 		log.Info("Horizontal pod autoscaler is not enabled proceeding with setting deployment to cr spec size")
-		if bestieDeployment.Spec.Replicas != size {
-			bestieDeployment.Spec.Replicas = size
+		if *bestieDeployment.Spec.Replicas != size {
+			*bestieDeployment.Spec.Replicas = size
 			err = r.Update(ctx, bestieDeployment)
 			if err != nil {
 				log.Error(err, "Failed to update Deployment", "Deployment.Namespace", bestieDeployment.Namespace, "Deployment.Name", bestieDeployment.Name, "Deployment.Spec", bestieDeployment.Spec)

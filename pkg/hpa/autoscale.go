@@ -18,34 +18,49 @@ package hpa
 
 import (
 	"github.com/go-logr/logr"
-	autoscalingv1 "k8s.io/api/autoscaling/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
 )
 
 const (
-	defaultCPUTarget = int32(90)
+	defaultCPUTarget = int32(30)
 )
 
 // Autoscalers returns a list of HPAs based on specs.
-func AutoScaler(logger logr.Logger, bestie v1.Bestie) autoscalingv1.HorizontalPodAutoscaler {
-	cpuTarget := defaultCPUTarget
-	return autoscalingv1.HorizontalPodAutoscaler{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      bestie.Name + "hpa",
-			Namespace: bestie.Namespace,
-			Labels:    bestie.Labels,
+func AutoScaler(logger logr.Logger, bestieDeployment appsv1.Deployment, bestie v1.Bestie) autoscalingv2.HorizontalPodAutoscaler {
+	targetCpuUtilization := defaultCPUTarget
+	cpuTarget := autoscalingv2.ResourceMetricSource{
+		Name: "cpu",
+		Target: autoscalingv2.MetricTarget{
+			Type:               autoscalingv2.UtilizationMetricType,
+			AverageUtilization: &targetCpuUtilization,
 		},
-		Spec: autoscalingv1.HorizontalPodAutoscalerSpec{
-			ScaleTargetRef: autoscalingv1.CrossVersionObjectReference{
+	}
+	targetMetrics := []autoscalingv2.MetricSpec{
+		autoscalingv2.MetricSpec{
+			Type:     "Resource",
+			Resource: &cpuTarget,
+		},
+	}
+
+	return autoscalingv2.HorizontalPodAutoscaler{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      bestie.Name + "-hpa",
+			Namespace: bestieDeployment.Namespace,
+			Labels:    bestieDeployment.Labels,
+		},
+		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
+			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
 				APIVersion: "apps/v1",
 				Kind:       "Deployment",
-				Name:       bestie.Name,
+				Name:       bestieDeployment.Name,
 			},
-			MinReplicas:                    bestie.Spec.Replicas,
-			MaxReplicas:                    *bestie.Spec.MaxReplicas,
-			TargetCPUUtilizationPercentage: &cpuTarget,
+			MinReplicas: bestieDeployment.Spec.Replicas,
+			MaxReplicas: *bestie.Spec.MaxReplicas,
+			Metrics:     targetMetrics,
 		},
 	}
 }

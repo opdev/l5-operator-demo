@@ -86,6 +86,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	log.Info("Reconciling Bestie")
 
 	// Fetch the Bestie instance
+	log.Info("get latest bestie instance")
 	bestie := &petsv1.Bestie{}
 	err := r.Get(ctx, req.NamespacedName, bestie)
 	if err != nil {
@@ -101,6 +102,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	// reconcile Postgres
+	log.Info("reconcile postgres if it does not exist")
 	pgo := &pgov1.PostgresCluster{}
 
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-pgo", Namespace: bestie.Namespace}, pgo)
@@ -130,6 +132,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	// reconcile Deployment.
+	log.Info("reconcile deployment if it does not exist")
 	dp := &appsv1.Deployment{}
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
@@ -146,21 +149,37 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	// Ensure the deployment size is the same as the spec
+	log.Info("reconcile deployment to appropriate size if HPA is not enabled")
+	bestieDeployment := &appsv1.Deployment{}
+	HorizontalPodAutoScalar := &autoscalingv1.HorizontalPodAutoscaler{}
+	// get latest instance of deployment
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, bestieDeployment)
+	if err != nil {
+		log.Error(err, "unable to retrieve deployment")
+	}
 	size := bestie.Spec.Size
-	if *dp.Spec.Replicas != size {
-		dp.Spec.Replicas = &size
-		err = r.Update(ctx, dp)
-		if err != nil {
-			log.Error(err, "Failed to update Deployment", "Deployment.Namespace", dp.Namespace, "Deployment.Name", dp.Name)
-			return ctrl.Result{}, err
+	// TODO check if autoscaling is enabled in a better way
+	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-hpa", Namespace: bestie.Namespace}, HorizontalPodAutoScalar)
+	if err == nil {
+		//size = HorizontalPodAutoScalar.Spec.MinReplicas
+	} else {
+		log.Info("Horizontal pod autoscaler is not enabled proceeding with setting deployment to cr spec size")
+		if bestieDeployment.Spec.Replicas != size {
+			bestieDeployment.Spec.Replicas = size
+			err = r.Update(ctx, bestieDeployment)
+			if err != nil {
+				log.Error(err, "Failed to update Deployment", "Deployment.Namespace", bestieDeployment.Namespace, "Deployment.Name", bestieDeployment.Name, "Deployment.Spec", bestieDeployment.Spec)
+				return ctrl.Result{}, err
+			}
+			// Ask to requeue after 1 minute in order to give enough time for the
+			// pods be created on the cluster side and the operand be able
+			// to do the next update step accurately.
+			// return ctrl.Result{RequeueAfter: time.Second * 10}, nil
 		}
-		// Ask to requeue after 1 minute in order to give enough time for the
-		// pods be created on the cluster side and the operand be able
-		// to do the next update step accurately.
-		return ctrl.Result{RequeueAfter: time.Minute}, nil
 	}
 
 	//isAppRunning
+	log.Info("delay if no ready replicas in bestie deployment")
 	bestieRunning := r.isBestieRunning(ctx, bestie)
 
 	if !bestieRunning {
@@ -173,6 +192,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	//Level 2 : update Operand.
+	log.Info("reconcile bestie version")
 	err = r.upgradeOperand(ctx, bestie)
 	if err != nil {
 		log.Error(err, "Failed to upgrade the operand")
@@ -180,6 +200,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	//Level 1 : update appVersion status.
+	log.Info("update bestie version status")
 	appVersion := r.getDeployedBestieVersion(ctx, bestie)
 	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
 		bestie.Status.AppVersion = appVersion
@@ -192,6 +213,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	//Level 1 : update application status.
+	log.Info("update bestie pods status")
 	_, err = r.updateApplicationStatus(ctx, bestie)
 	if err != nil {
 		log.Error(err, "Failed to update bestie application status")
@@ -199,6 +221,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	//seed the database - as long as the postgres app is up and running this can run.
+	log.Info("create a job to seed the database")
 	job := &batchv1.Job{}
 
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-job", Namespace: bestie.Namespace}, job)
@@ -216,6 +239,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	// reconcile service.
+	log.Info("reconcile bestie service if it does not exist")
 	svc := &corev1.Service{}
 
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-service", Namespace: bestie.Namespace}, svc)
@@ -233,13 +257,14 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	//Reconciling HPA.
+	log.Info("reconcile hpa if it does not exist")
 	hpa := &autoscalingv1.HorizontalPodAutoscaler{}
 
 	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-hpa", Namespace: bestie.Namespace}, hpa)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Creating New HPA Instance")
-			isHpa := horizontalpodautoscalers(ctx, *bestie.DeepCopy(), r.Client, r.Scheme)
+			isHpa := horizontalpodautoscalers(ctx, *dp.DeepCopy(), *bestie.DeepCopy(), r.Client, r.Scheme)
 			if isHpa != nil {
 				return ctrl.Result{Requeue: true}, isHpa
 			}
@@ -248,6 +273,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
+	log.Info("deploy route or service if openshift or vanilla k8s")
 	// Checking to see if cluster is an OpenShift cluster.
 	// Checks for this api "route.openshift.io/v1".
 	isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)

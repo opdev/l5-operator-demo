@@ -1,8 +1,3 @@
-### Capability Levels
-
-![image](https://i.imgur.com/FCKIDxJ.png)
-
----
 #### Skaffolding go project
 
 implement basic operator

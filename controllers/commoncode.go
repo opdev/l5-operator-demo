@@ -162,7 +162,7 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 		client.InNamespace(bestie.Namespace),
 		client.MatchingLabels{"app": "bestie"},
 	}
-
+  
 	if err := r.List(ctx, podList, listOpts...); err != nil {
 		log.Error(err, "Failed to list pods", "bestie.Namespace", bestie.Namespace, "Bestie.Name", bestie.Name)
 		return ctrl.Result{}, err

@@ -1,0 +1,2 @@
+# Represents the current release of the L5 Operator
+l5-operator=1.3

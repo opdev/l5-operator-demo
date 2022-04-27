@@ -1,0 +1,64 @@
+name: Build Main
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  IMAGE_NAME: l5-operator
+  REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+  IMAGE_REGISTRY: quay.io/opdev
+  REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+
+jobs:
+  build-main:
+    name: Build and push L5 local/bestie-operator:e2e
+    strategy:
+      matrix:
+        architecture: [amd64]
+        platform: [linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fetch latest release version
+        uses: reloc8/action-latest-release-version@1.0.0
+        id: fetch-latest-release
+      - name: Set Env Tags
+        run: |
+          grep -v '\#' versions.txt | grep l5-operator | awk -F= '{print " RELEASE_TAG="$2}' >> $GITHUB_ENV
+      - name: set short sha
+        run: echo SHA_SHORT=$(git rev-parse --short HEAD) >> $GITHUB_ENV
+      - name: Login to registry
+        id: registry-login
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          registry: quay.io
+      - name: Build Image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: l5-operator
+          tags: ${{ env.RELEASE_TAG }}
+          archs: ${{ matrix.architecture }}
+          build-args: |
+            quay_expiration=1w
+            release_tag=${{ env.RELEASE_TAG }}
+            ARCH=${{ matrix.architecture }}
+          dockerfiles: |
+            ./Dockerfile
+      - name: Push Image
+        id: push-image
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image:  ${{ steps.build-image.outputs.image }}
+          tags: ${{ env.RELEASE_TAG }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+
+      - name: Print image url
+        run: echo "Image pushed to ${{ steps.push-image.outputs.registry-paths }}"
+
+    outputs:
+      imageName: ${{ env.IMAGE_NAME }}
+      imageVersion: ${{ env.RELEASE_TAG }}

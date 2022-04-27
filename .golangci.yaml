@@ -16,7 +16,7 @@ linters:
   enable:
     - goheader
     - goimports
-    - maligned
+    - govet
     - misspell
     - gosec
     - exhaustive

@@ -12,4 +12,4 @@ commands:
   - command: sleep 30s
 testDirs:
   - ./tests/e2e/
-timeout: 200
+timeout: 150

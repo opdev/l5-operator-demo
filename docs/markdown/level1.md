@@ -13,8 +13,6 @@
 
 [Bestie](https://bestie-rescue.herokuapp.com/) is a pet adoption web application with a React frontend and Flask backend utilizing a Postgres database.
 
-
-
 <aside class="notes">
 	Speaker note
 </aside>
@@ -23,15 +21,11 @@
 
 #### Controller
 
-```
-isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.SchemeGroupVersion.Version)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-```
+Control loop that watches the state of the current cluster and tries to bring it closer to the desired state that's declared in the YAML files.
+
 
 <aside class="notes">
-	Speaker note
+	In Kubernetes, controllers are control loops that watch the state of your cluster, making or requesting changes. Each controller tries to move the current cluster state closer to the desired state.
 </aside>
 
 ---
@@ -46,7 +40,6 @@ isOpenShiftCluster, err := verifyOpenShiftCluster(routev1.GroupName, routev1.Sch
 ---
 
 #### Demo
-
 
 
 <aside class="notes">

@@ -9,7 +9,7 @@ commands:
   - command: make manifests
   - command: make install
   - command: kubectl get pods -n bestie
-  - command: sleep 10s
+  - command: sleep 30s
 testDirs:
   - ./tests/e2e/
 timeout: 200

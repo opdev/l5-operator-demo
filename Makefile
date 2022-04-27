@@ -125,7 +125,7 @@ endif
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-    kubectl create ns bestie
+	kubectl create ns bestie
 	$(KUSTOMIZE) build config/crd | kubectl apply -n bestie -f -
 
 .PHONY: uninstall

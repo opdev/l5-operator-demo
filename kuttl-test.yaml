@@ -5,9 +5,11 @@ artifactsDir: ./tests/_build/artifacts/
 kindContainers:
   - local/bestie-operator:e2e
 commands:
-
-  
-
+  - command: make generate
+  - command: make manifests
+  - command: make install
+  - command: kubectl get pods -n bestie
+  - command: sleep 10s
 testDirs:
   - ./tests/e2e/
-timeout: 300
+timeout: 200

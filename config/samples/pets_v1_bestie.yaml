@@ -3,9 +3,8 @@ kind: Bestie
 metadata:
   name: bestie
 spec:
-  size: 5
+  size: 3
   image: quay.io/opdev/l5-operator
-  maxReplicas: 2
+  maxReplicas: 10
   replicas: 1  
   version: "1.3"
-

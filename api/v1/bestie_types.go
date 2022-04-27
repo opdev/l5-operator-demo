@@ -28,10 +28,16 @@ type BestieSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster.
 	// Important: Run "make" to regenerate code after modifying this file.
 
-	Size    int32  `json:"size"`
-	Image   string `json:"image,omitempty"`
+	// The size of the deployment
+	Size int32 `json:"size"`
+
+	// The bestie app image
+	Image string `json:"image,omitempty"`
+
+	// The bestie app version
 	Version string `json:"version,omitempty"`
-	// Replicas is the number of pod instances for Bestie Deployment
+
+	// Replicas is the number of pod instances for Bestie Deployment if using the autoscaling feature
 	// +optional
 	Replicas *int32 `json:"replicas,omitempty"`
 
@@ -45,8 +51,11 @@ type BestieStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster.
 	// Important: Run "make" to regenerate code after modifying this file.
 
-	PodStatus  []string `json:"podstatus,omitempty"`
-	AppVersion string   `json:"appversion,omitempty"`
+	// List of pods, their status and the image they use
+	PodStatus []string `json:"podstatus,omitempty"`
+
+	// Current version deployed
+	AppVersion string `json:"appversion,omitempty"`
 }
 
 //+kubebuilder:object:root=true

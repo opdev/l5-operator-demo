@@ -20,7 +20,8 @@ import (
 	"context"
 	"fmt"
 
-	autoscalingv1 "k8s.io/api/autoscaling/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv1 "k8s.io/api/autoscaling/v2beta2"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,15 +34,17 @@ import (
 	"github.com/opdev/l5-operator-demo/l5-operator/pkg/hpa"
 )
 
-func horizontalpodautoscalers(ctx context.Context, bestie v1.Bestie, client cli.Client, r *runtime.Scheme) error {
+func horizontalpodautoscalers(ctx context.Context, bestieDeployment appsv1.Deployment, bestie v1.Bestie, client cli.Client, r *runtime.Scheme) error {
 	desired := []autoscalingv1.HorizontalPodAutoscaler{}
 
 	if bestie.Spec.MaxReplicas != nil {
-		desired = append(desired, hpa.AutoScaler(ctrllog.Log, bestie))
+		log.Info("MaxReplicas is set, enabling HPA")
+		desired = append(desired, hpa.AutoScaler(ctrllog.Log, bestieDeployment, bestie))
 	}
 
 	if err := applyHorizontalPodAutoscalers(ctx, bestie, client, r, desired); err != nil {
-		return fmt.Errorf("failed to reconcile the expected horizontal pod autoscalers: %w", err)
+		log.Error(err, "failed to reconcile the expected horizontal pod autoscalers")
+		return err
 	}
 	return nil
 }
@@ -78,7 +81,7 @@ func applyHorizontalPodAutoscalers(ctx context.Context, bestie v1.Bestie, client
 		}
 
 		updated.OwnerReferences = desired.OwnerReferences
-		updated.Spec.MinReplicas = bestie.Spec.Replicas
+		updated.Spec.MinReplicas = &bestie.Spec.Size
 		if bestie.Spec.MaxReplicas != nil {
 			updated.Spec.MaxReplicas = *bestie.Spec.MaxReplicas
 		}

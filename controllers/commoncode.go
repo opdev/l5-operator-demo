@@ -30,6 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -53,13 +54,17 @@ func (r *BestieReconciler) isBestieRunning(ctx context.Context, bestie *petsv1.B
 	return false
 }
 
-func (r *BestieReconciler) reportappversion(bestie *petsv1.Bestie) string {
+func (r *BestieReconciler) getDeployedBestieVersion(ctx context.Context, bestie *petsv1.Bestie) string {
 
-	tag := BestieDefaultVersion
-	if len(bestie.Spec.Version) > 0 {
-		tag = bestie.Spec.Version
+	dp := &appsv1.Deployment{}
+	err := r.Get(ctx, types.NamespacedName{Name: BestieName + "-app", Namespace: bestie.Namespace}, dp)
+	if err != nil {
+		log.Error(err, "unable to retrieve deployment")
+		return "unknown"
 	}
-	return tag
+	imageUri := dp.Spec.Template.Spec.Containers[0].Image
+	version := strings.Split(imageUri, ":")[1]
+	return version
 }
 
 func (r *BestieReconciler) applyManifests(ctx context.Context, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
@@ -149,7 +154,7 @@ func (r *BestieReconciler) upgradeOperand(ctx context.Context, bestie *petsv1.Be
 }
 
 // getPodNames returns the pod names of the array of pods passed in.
-func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *petsv1.Bestie) error {
+func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *petsv1.Bestie) (ctrl.Result, error) {
 
 	podList := &corev1.PodList{}
 
@@ -159,13 +164,20 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 	}
 	if err := r.List(ctx, podList, listOpts...); err != nil {
 		log.Error(err, "Failed to list pods", "bestie.Namespace", bestie.Namespace, "Bestie.Name", bestie.Name)
-		return err
+		return ctrl.Result{}, err
+	}
+
+	//Be Careful When Listing Pods... Some May Be in Terminating Status..
+	var nonTerminatedPodList []corev1.Pod
+	for _, pod := range podList.Items {
+		if pod.ObjectMeta.DeletionTimestamp == nil {
+			nonTerminatedPodList = append(nonTerminatedPodList, pod)
+		}
 	}
 
 	//Update status if needed
-	appStatus := getPodNamesandStatuses(podList.Items)
-
-	fmt.Printf("%v", appStatus)
+	appStatus := getPodNamesandStatuses(nonTerminatedPodList)
+	log.Info(fmt.Sprintf("The pod status is %v", appStatus))
 
 	bestieStatusDifferent := !reflect.DeepEqual(appStatus, bestie.Status.PodStatus)
 	if bestieStatusDifferent {
@@ -174,10 +186,13 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 		err := r.Status().Update(ctx, bestie)
 		if err != nil {
 			log.Error(err, "Failed to update bestie application status")
-			return err
+			return ctrl.Result{}, err
 		}
+		//requeue
+		return ctrl.Result{Requeue: true}, nil
+
 	}
-	return nil
+	return ctrl.Result{}, nil
 }
 
 // getPodNameandStatuses returns the pod names+status of the array of pods passed in.
@@ -185,7 +200,7 @@ func getPodNamesandStatuses(pods []corev1.Pod) []string {
 	var podNamesStatus []string
 	var podStat string
 	for _, pod := range pods {
-		podStat = pod.Name + " : " + string(pod.Status.Phase)
+		podStat = pod.Name + " : " + string(pod.Status.Phase) + " : " + string(pod.Spec.Containers[0].Image)
 		podNamesStatus = append(podNamesStatus, podStat)
 	}
 	return podNamesStatus

@@ -6,7 +6,7 @@ linters-settings:
   goheader:
     template-path: header.txt
   goimports:
-    local-prefixes: github.com/opdev/l5-operator-demo/l5-operator
+    local-prefixes: github.com/opdev/l5-operator-demo
   maligned:
     suggest-new: true
   misspell:

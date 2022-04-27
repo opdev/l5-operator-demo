@@ -24,7 +24,7 @@ import (
 
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 
-	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -56,7 +56,7 @@ type BestieReconciler struct {
 
 const (
 	BestieDefaultImage   = "quay.io/mkong/bestiev2"
-	BestieDefaultVersion = "1.2.3"
+	BestieDefaultVersion = "1.3"
 	BestieName           = "bestie"
 )
 

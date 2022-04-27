@@ -17,7 +17,7 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Bestie is the Schema for the besties API
+        description: Bestie is the Schema for the besties API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -32,11 +32,17 @@ spec:
           metadata:
             type: object
           spec:
-            description: BestieSpec defines the desired state of Bestie
+            description: BestieSpec defines the desired state of Bestie.
             properties:
               image:
                 type: string
-              size:
+              maxReplicas:
+                description: MaxReplicas sets an upper bound to the autoscaling feature.
+                  If MaxReplicas is set autoscaling is enabled.
+                format: int32
+                type: integer
+              replicas:
+                description: Replicas is the number of pod instances for Bestie Deployment
                 format: int32
                 type: integer
               version:

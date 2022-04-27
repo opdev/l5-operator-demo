@@ -23,7 +23,7 @@ import (
 	"reflect"
 	"strings"
 
-	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -162,6 +162,7 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 		client.InNamespace(bestie.Namespace),
 		client.MatchingLabels{"app": "bestie"},
 	}
+  
 	if err := r.List(ctx, podList, listOpts...); err != nil {
 		log.Error(err, "Failed to list pods", "bestie.Namespace", bestie.Namespace, "Bestie.Name", bestie.Name)
 		return ctrl.Result{}, err
@@ -190,8 +191,12 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 		}
 		//requeue
 		return ctrl.Result{Requeue: true}, nil
-
 	}
+
+	//Level 4 - Update metric
+	rc := getPodstatusReason(podList.Items)
+	log.Info(fmt.Sprintf("return code for getPodstatusReason %f", rc))
+	applicationUpgradeFailure.Set(rc)
 	return ctrl.Result{}, nil
 }
 
@@ -204,4 +209,20 @@ func getPodNamesandStatuses(pods []corev1.Pod) []string {
 		podNamesStatus = append(podNamesStatus, podStat)
 	}
 	return podNamesStatus
+}
+
+// getPodNameandStatuses returns the pod names+status of the array of pods passed in
+func getPodstatusReason(pods []corev1.Pod) float64 {
+	// return 0 if not found, otherwise return 1
+	for _, pod := range pods {
+		if string(pod.Status.Phase) == "Pending" {
+			stat := pod.Status.ContainerStatuses[0].State.Waiting.Reason
+			log.Info(stat)
+			if string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ErrImagePull" ||
+				string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ImagePullBackOff" {
+				return 1
+			}
+		}
+	}
+	return 0
 }

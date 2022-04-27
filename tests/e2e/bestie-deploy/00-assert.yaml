@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: bestie
+  name: bestie-app
+  namespace: bestie
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bestie
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: bestie
+    spec:
+      containers:
+        name: bestie
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - until pg_isready -h $(DB_ADDR) -p 5432; do echo waiting for database; sleep
+          2; done;
+        env:
+        - name: DB_ADDR
+          valueFrom:
+            secretKeyRef:
+              key: host
+              name: bestie-pgo-pguser-bestie-pgo
+        name: check-db-ready
+status:
+  availableReplicas: 1
+  replicas: 1

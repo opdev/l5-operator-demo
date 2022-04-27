@@ -70,6 +70,7 @@ const (
 //+kubebuilder:rbac:groups=postgres-operator.crunchydata.com,resources=postgresclusters,verbs=*
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=*
 //+kubebuilder:rbac:groups=monitoring.coreos.com,resources=prometheuses;servicemonitors,verbs=*
+// +kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -111,7 +112,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			fileName := "config/resources/postgrescluster.yaml"
 			err := r.applyManifests(ctx, bestie, pgo, fileName)
 			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
@@ -140,7 +141,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			fileName := "config/resources/bestie-deploy.yaml"
 			err := r.applyManifests(ctx, bestie, dp, fileName)
 			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
@@ -230,7 +231,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			fileName := "config/resources/bestie-job.yaml"
 			err := r.applyManifests(ctx, bestie, job, fileName)
 			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
@@ -248,7 +249,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			fileName := "config/resources/bestie-svc.yaml"
 			err := r.applyManifests(ctx, bestie, svc, fileName)
 			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
+				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
@@ -293,7 +294,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				fileName := "config/resources/bestie-route.yaml"
 				err := r.applyManifests(ctx, bestie, route, fileName)
 				if err != nil {
-					return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
+					return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
 				}
 			} else {
 				log.Error(err, "Failed to get route.")

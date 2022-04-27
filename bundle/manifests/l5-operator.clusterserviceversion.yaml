@@ -185,15 +185,7 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
-<<<<<<< HEAD
                 image: quay.io/rocrisp/bestie-controller:2.2
-=======
-<<<<<<< HEAD
-                image: quay.io/rocrisp/bestie-controller:2.2
-=======
-                image: quay.io/rocrisp/bestie-controller:3.5
->>>>>>> cac1439 (Fix #73)
->>>>>>> ce48888 (Fix #73)
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -277,5 +269,3 @@ spec:
     name: Provider Name
     url: https://your.domain
   version: 0.0.3
-
-

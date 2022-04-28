@@ -79,8 +79,10 @@
 ---
 #### A more generalized approach
 - Read only mode
-- Spin up a new instance
-- Restore a backup to this new instance
+- Spin up a new instance with a different app version
+- Backup the read only instance
+- Apply migrations if neccessary
+- Restore this modified backup to this new instance
 - Switch traffic over
 
 <aside class="notes">

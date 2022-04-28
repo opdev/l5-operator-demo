@@ -20,6 +20,8 @@ import (
 	"flag"
 	"os"
 
+	"github.com/opdev/l5-operator-demo/internal/util"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
@@ -79,13 +81,12 @@ func main() {
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "9b140e36.bestie.com",
 	})
-
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if controllers.IsRouteAPIAvailable() {
+	if util.IsRouteAPIAvailable() {
 		if err := routev1.Install(mgr.GetScheme()); err != nil {
 			setupLog.Error(err, "")
 			os.Exit(1)

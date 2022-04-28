@@ -29,7 +29,7 @@ const (
 	defaultCPUTarget = int32(30)
 )
 
-// Autoscalers returns a list of HPAs based on specs.
+// Autoscalers returns an HPAs based on specs.
 func AutoScaler(logger logr.Logger, bestieDeployment appsv1.Deployment, bestie v1.Bestie) autoscalingv2.HorizontalPodAutoscaler {
 	targetCpuUtilization := defaultCPUTarget
 	cpuTarget := autoscalingv2.ResourceMetricSource{
@@ -40,7 +40,7 @@ func AutoScaler(logger logr.Logger, bestieDeployment appsv1.Deployment, bestie v
 		},
 	}
 	targetMetrics := []autoscalingv2.MetricSpec{
-		autoscalingv2.MetricSpec{
+		{
 			Type:     "Resource",
 			Resource: &cpuTarget,
 		},

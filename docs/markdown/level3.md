@@ -1,5 +1,6 @@
 #### More Parts of the lifecyle
-- What about backups and restores ?
+- backups
+- restores
 
 <aside class="notes">
   Speaker notes:
@@ -16,12 +17,23 @@
 </aside>
 
 ---
-#### Handling Backups
-- What things need to be backed up ?
+#### What to backup ?
+- databse
+- custom resource
 
 <aside class="notes">
   Speaker Notes:
   Our app is stateless we need only backup the db. We could also have some operator state stored in our custom resource and thats something that needs to be backed up as well.
+</aside>
+
+---
+#### Handling Backups
+- jobs
+- storage
+
+<aside class="notes">
+  Speaker Notes:
+  Typically when thinking about backups a few things need to be in place for example appropriate database configurations, cron jobs and off site storage
 </aside>
 
 ---
@@ -30,7 +42,7 @@
 
 <aside class="notes">
   Speaker note:
-  Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and reestore functionality
+  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
 </aside>
 
 ---
@@ -46,23 +58,34 @@
 
 ---
 #### What about Restores
-- Implement database backward compatibility
-- Link app version and db version via the CR
+- Applications and database compatibility
+- Service Disruption
 
 <aside class="notes">
   Speaker notes:
-  But backups are only part of the picture what about restores ? Restores bring about a few more complications. If we restore a database backup the app might not work correctly as the database version and the app version are not compatible for all pods. So one we need to ensure that the app and the db are compatible and two we need to minimize dataloss and distruption when switching between versions. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible.
+  But backups are only part of the picture what about restores ? Restores bring about a few more complications. If we restore a database backup the app might not work correctly as the database version and the app version are not compatible for all pods. 
 </aside>
 
 ---
-#### Advanced scenarios
+#### The "easy way"
+- Bake migration scripts into the application
+- allow for some service disruption
+
+<aside class="notes">
+  Speaker notes:
+  So one we need to ensure that the app and the db are compatible and two we need to minimize dataloss and distruption when switching between versions. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible. The simpler way is to just account for some service disruption.
+</aside>
+
+---
+#### A more generalized approach
 - Read only mode
 - Spin up a new instance
+- Restore a backup to this new instance
 - Switch traffic over
 
 <aside class="notes">
   Speaker notes:
-  Another way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. Switch the app into a read only mode, spin up a new database instance and a a new deployment with an older version of the app and the database (which are compatible) and switch traffic over.
+  Another way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. Switch the app into a read only mode in order to prevent dataloss during the upgrade process.. spin up a new database instance and a a new deployment with an older version of the app and the database (which are compatible) .. restore a backup to this new instance with the latest data from the read only isntance and then switch traffic over. This is something that can be automated by software operators.
 </aside>
 
 ---

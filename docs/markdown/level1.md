@@ -71,20 +71,18 @@ spec:
 
 ```golang
 reconcilers := []reconcilers.Reconciler{
-	reconcilers.NewPipelineGitRepoReconciler(r.Client, reqLogger, r.Scheme),
-	reconcilers.NewPipeDependenciesReconciler(r.Client, reqLogger, r.Scheme),
+	reconcilers.NewPostgresClusterCRReconciler(r.Client, log, r.Scheme),
+	reconcilers.NewDatabaseSeedJobReconciler(r.Client, log, r.Scheme),
 	...
 }
 
 for _, r := range reconcilers {
-	requeue, err := r.Reconcile(ctx, pipeline)
+	requeue, err := r.Reconcile(ctx, stickyNote)
 	if err != nil {
 		log.Error(err, "requeuing with error")
 		return ctrl.Result{Requeue: true}, err
 	}
-	requeueResult = requeueResult || requeue
 }
-return ctrl.Result{Requeue: requeueResult}, nil
 ```
 
 <aside class="notes">

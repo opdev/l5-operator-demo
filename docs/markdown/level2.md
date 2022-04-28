@@ -24,25 +24,21 @@ Operator can be upgraded seamlessly and can either still manage older versions o
 ####
 
 ```
-if bestieImageDifferent {
-        if bestieImageDifferent {
-            log.Info("Upgrade Operand")
-            dp.Spec.Template.Spec.Containers[0].Image = getBestieContainerImage(bestie)
-        }```
-<aside class="notes">
-Get the desired version from CR
-Upgrade the container image if current version is less than desired version
-</aside>
+bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0].Image, getBestieContainerImage(bestie))
 
-```
-
-<aside class="notes">
-Get the desired version from CR
-Upgrade the container image if current version is less than desired version
-</aside>
+	if bestieImageDifferent {
+		if bestieImageDifferent {
+			log.Info("Upgrade Operand")
+			dp.Spec.Template.Spec.Containers[0].Image = getBestieContainerImage(bestie)
+		}Spec.Template.Spec.Containers[0].Image = getBestieContainerImage(bestie)
+        }
+ ```
 
 ---
 
+#### How do you ensure seamless upgrade ?
+
+---
 
 #### Liveness and Readiness Probe
 

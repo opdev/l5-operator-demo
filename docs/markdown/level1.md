@@ -63,22 +63,3 @@ spec:
 	we brought the l5 operator from level 1: basic installation to level 2: seamless upgrades
 </aside>
 
-<!--
-
-create deployment for bestie
-create service for bestie
-make sure postgresql db is up and running before bestie deployment
-create routes for bestie
-only seed if there's no data.
-document prerequisite for https i.e. certificate manager
-infinite loop run and watches something
-controller is a loop watchs cr or crd
-controller(loop) received event from cr
-triggers recinciler(logic)
-
-import from controller-runtime
-
-manager initiates
-
-main.go
--->

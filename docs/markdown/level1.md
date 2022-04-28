@@ -32,52 +32,19 @@ Operator: Automate the management of the Bestie application
 
 ---
 
-### Operator SDK Go-opertator
+### Operator SDK
 - Installation
 - Out of the box content
 
 <aside class="notes">
-	orchestrated in some way we use an operator to build we use sdk
-	kubernetes and opeator framework
+	orchestrated in some way so we use op sdk
+	Operator SDK is a framework w/ controller-runtime library (simplies building,
+	testing, packaging ops)
 	leverage oeprator sdk incorprate
-	conroller and customer resourse
-
-	Operator SDK is a framework controller-runtime library (simplies building, testing, packaging ops), OLM(streamline packaging, install, manage, ugrade ops on a cluster), catalog (publish/share)
+	controller and customer resourse
 </aside>
 
----
-
-### Controllers & Reconiler
-
-```
-log.Info("reconcile postgres if it does not exist")
-pgo := &pgov1.PostgresCluster{}
-
-err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-pgo", Namespace: bestie.Namespace}, pgo)
-if err != nil {
-	if errors.IsNotFound(err) {
-		log.Info("Creating a new PGC for bestie")
-		fileName := "config/resources/postgrescluster.yaml"
-		err := r.applyManifests(ctx, bestie, pgo, fileName)
-		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
-		}
-	} else {
-		return ctrl.Result{Requeue: true}, err
-	}
-}
-```
-
-<aside class="notes">
-	- Control loop that watches the state of the current cluster and tries to bring it
-	closer to the desired state that's declared in the resource definition files.
-	- In Kubernetes, controllers are control loops that watch the state of your cluster,
-	making or requesting changes. Each controller tries to move the current cluster state
-	closer to the desired state.
-	- Contains the controllers and is triggered every time an event occurs
-	- Crunchy Postgres Operator uses the YAML we provide and configures a postgres cluster
-	for us to consume
-</aside>
+<!-- , OLM(streamline packaging, install, manage, ugrade ops on a cluster), catalog (publish/share) -->
 
 ---
 
@@ -96,21 +63,42 @@ spec:
 
 <aside class="notes">
 	- This is the sticky note that the controller watches and tries to copy whenever an event occurs
-	- Next Soundharya will talk more about the capabilities of a level 2 operator and how we brought the l5 operator from level 1 to level 2
 </aside>
 
 ---
 
-<!-- ### Demo
+### Reconciler
 
-![]()
+```golang
+reconcilers := []reconcilers.Reconciler{
+	reconcilers.NewPipelineGitRepoReconciler(r.Client, reqLogger, r.Scheme),
+	reconcilers.NewPipeDependenciesReconciler(r.Client, reqLogger, r.Scheme),
+	...
+}
+
+for _, r := range reconcilers {
+	requeue, err := r.Reconcile(ctx, pipeline)
+	if err != nil {
+		log.Error(err, "requeuing with error")
+		return ctrl.Result{Requeue: true}, err
+	}
+	requeueResult = requeueResult || requeue
+}
+return ctrl.Result{Requeue: requeueResult}, nil
+```
 
 <aside class="notes">
-	Show video and voice over.
-
-
----
-</aside> -->
+	- Control loop that watches the state of the current cluster and tries to bring it
+	closer to the desired state that's declared in the resource definition files.
+	- In Kubernetes, controllers are control loops that watch the state of your cluster,
+	making or requesting changes. Each controller tries to move the current cluster state
+	closer to the desired state.
+	- Contains the controllers and is triggered every time an event occurs
+	- Crunchy Postgres Operator uses the YAML we provide and configures a postgres cluster
+	for us to consume
+	- Next Soundharya will talk more about the capabilities of a level 2 operator and how
+	we brought the l5 operator from level 1 to level 2
+</aside>
 
 <!--
 
@@ -119,4 +107,15 @@ create service for bestie
 make sure postgresql db is up and running before bestie deployment
 create routes for bestie
 only seed if there's no data.
-document prerequisite for https i.e. certificate manager -->
+document prerequisite for https i.e. certificate manager
+infinite loop run and watches something
+controller is a loop watchs cr or crd
+controller(loop) received event from cr
+triggers recinciler(logic)
+
+import from controller-runtime
+
+manager initiates
+
+main.go
+-->

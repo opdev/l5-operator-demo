@@ -30,8 +30,7 @@ import (
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	v1 "github.com/opdev/l5-operator-demo/api/v1"
-
-	"github.com/opdev/l5-operator-demo/pkg/hpa"
+	"github.com/opdev/l5-operator-demo/internal/hpa"
 )
 
 func horizontalpodautoscalers(ctx context.Context, bestieDeployment appsv1.Deployment, bestie v1.Bestie, client cli.Client, r *runtime.Scheme) error {

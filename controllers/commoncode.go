@@ -162,7 +162,7 @@ func (r *BestieReconciler) updateApplicationStatus(ctx context.Context, bestie *
 		client.InNamespace(bestie.Namespace),
 		client.MatchingLabels{"app": "bestie"},
 	}
-  
+
 	if err := r.List(ctx, podList, listOpts...); err != nil {
 		log.Error(err, "Failed to list pods", "bestie.Namespace", bestie.Namespace, "Bestie.Name", bestie.Name)
 		return ctrl.Result{}, err
@@ -211,7 +211,7 @@ func getPodNamesandStatuses(pods []corev1.Pod) []string {
 	return podNamesStatus
 }
 
-// getPodNameandStatuses returns the pod names+status of the array of pods passed in
+// getPodNameandStatuses returns the pod names+status of the array of pods passed in.
 func getPodstatusReason(pods []corev1.Pod) float64 {
 	// return 0 if not found, otherwise return 1
 	for _, pod := range pods {

@@ -45,3 +45,7 @@ bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0].I
 - Controls the health of an application running inside a Pod’s container.
 
 <aside class="notes"> Failing liveness probe will restart the container, whereas failing readiness probe will stop our application from serving traffic.</aside>
+
+---
+
+#### Demo

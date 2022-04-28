@@ -69,11 +69,12 @@
 ---
 #### The "easy way"
 - Bake migration scripts into the application
-- allow for some service disruption
+- Always roll forward never backwards
+- Allow for some service disruption
 
 <aside class="notes">
   Speaker notes:
-  So one we need to ensure that the app and the db are compatible and two we need to minimize dataloss and distruption when switching between versions. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible. The simpler way is to just account for some service disruption.
+  So one we need to ensure that the app and the db are compatible and two we need to minimize dataloss and distruption when switching between versions. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible. An even more simple approach is to just account for some service disruption and stop traffic to the application.
 </aside>
 
 ---
@@ -87,7 +88,7 @@
 
 <aside class="notes">
   Speaker notes:
-  Another way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. Switch the app into a read only mode in order to prevent dataloss during the upgrade process.. spin up a new database instance and a a new deployment with an older version of the app and the database (which are compatible) .. restore a backup to this new instance with the latest data from the read only isntance and then switch traffic over. This is something that can be automated by software operators.
+  Another way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. Switch the app into a read only mode in order to prevent dataloss during the upgrade process.. spin up a new database instance and a a new deployment with an older version of the app and the database (which are compatible) .. backup the read only isntance and restore it to the newly spun up instance after applying any migrations if neccessary and then switch traffic over. This is something that can be automated by software operators.
 </aside>
 
 ---

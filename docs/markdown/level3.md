@@ -53,7 +53,7 @@
 
 <aside class="notes">
   Speaker Notes:
-  The postgres operator gives us many things out of the box including WAL, offsite backups to S3 and other storage providers. It also allows us to configure differntial and full backups with specific schedules and retention policies.
+  The postgres operator gives us many things out of the box including WAL which enable point in time recovery, offsite backups to S3 and other storage providers. It also allows us to configure differntial and full backups with specific schedules and retention policies.
 </aside>
 
 ---

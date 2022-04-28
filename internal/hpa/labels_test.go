@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"testing"
 
-	v1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	v1 "github.com/opdev/l5-operator-demo/api/v1"
 )
 
 func TestLabels(t *testing.T) {

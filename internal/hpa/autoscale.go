@@ -22,7 +22,7 @@ import (
 	autoscalingv2 "k8s.io/api/autoscaling/v2beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	v1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	v1 "github.com/opdev/l5-operator-demo/api/v1"
 )
 
 const (

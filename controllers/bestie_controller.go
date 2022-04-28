@@ -22,14 +22,13 @@ import (
 	"reflect"
 	"time"
 
-	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
+	"github.com/opdev/l5-operator-demo/internal/reconcilers"
 
-	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
-	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -56,7 +55,7 @@ type BestieReconciler struct {
 
 const (
 	BestieDefaultImage   = "quay.io/mkong/bestiev2"
-	BestieDefaultVersion = "1.2.3"
+	BestieDefaultVersion = "1.3"
 	BestieName           = "bestie"
 )
 
@@ -82,7 +81,7 @@ const (
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := ctrllog.FromContext(ctx)
+	log := ctrllog.FromContext(ctx, "Request.Namespace", req.Namespace, "Request.Name", req.Name)
 	log.Info("Reconciling Bestie")
 
 	// Fetch the Bestie instance
@@ -101,34 +100,20 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	// reconcile Postgres
-	log.Info("reconcile postgres if it does not exist")
-	pgo := &pgov1.PostgresCluster{}
+	reconcilers := []reconcilers.Reconciler{
+		reconcilers.NewPostgresClusterCRReconciler(r.Client, log, r.Scheme),
+		reconcilers.NewDatabaseSeedJobReconciler(r.Client, log, r.Scheme),
+	}
 
-	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-pgo", Namespace: bestie.Namespace}, pgo)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating a new PGC for bestie")
-			fileName := "config/resources/postgrescluster.yaml"
-			err := r.applyManifests(ctx, bestie, pgo, fileName)
-			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
-			}
-		} else {
+	requeueResult := false
+	stickyNote := bestie.DeepCopy()
+	for _, r := range reconcilers {
+		requeue, err := r.Reconcile(ctx, stickyNote)
+		if err != nil {
+			log.Error(err, "requeuing with error")
 			return ctrl.Result{Requeue: true}, err
 		}
-	}
-
-	// wait for postgres to come up
-	var postgresReady = false
-	if pgo.Status.InstanceSets != nil && len(pgo.Status.InstanceSets) > 0 && pgo.Status.InstanceSets[0].ReadyReplicas >= 1 {
-		postgresReady = true
-	}
-	if !postgresReady {
-		// If postgres is not ready yet, requeue after delay seconds.
-		delay := time.Second * time.Duration(15)
-		log.Info(fmt.Sprintf("postgres is instantiating, waiting for %s", delay))
-		return ctrl.Result{RequeueAfter: delay}, nil
+		requeueResult = requeueResult || requeue
 	}
 
 	// reconcile Deployment.
@@ -199,7 +184,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{Requeue: true}, err
 	}
 
-	//Level 1 : update appVersion status.
+	//Level 2 : update appVersion status.
 	log.Info("update bestie version status")
 	appVersion := r.getDeployedBestieVersion(ctx, bestie)
 	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
@@ -212,30 +197,12 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	//Level 1 : update application status.
+	//Level 2 : update application status.
 	log.Info("update bestie pods status")
 	_, err = r.updateApplicationStatus(ctx, bestie)
 	if err != nil {
 		log.Error(err, "Failed to update bestie application status")
 		return ctrl.Result{Requeue: true}, err
-	}
-
-	//seed the database - as long as the postgres app is up and running this can run.
-	log.Info("create a job to seed the database")
-	job := &batchv1.Job{}
-
-	err = r.Get(ctx, types.NamespacedName{Name: BestieName + "-job", Namespace: bestie.Namespace}, job)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Info("Creating a new job for bestie")
-			fileName := "config/resources/bestie-job.yaml"
-			err := r.applyManifests(ctx, bestie, job, fileName)
-			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
-			}
-		} else {
-			return ctrl.Result{Requeue: true}, err
-		}
 	}
 
 	// reconcile service.
@@ -325,7 +292,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{Requeue: requeueResult}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

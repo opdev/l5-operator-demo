@@ -29,7 +29,7 @@ import (
 
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 
-	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -38,7 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/opdev/l5-operator-demo/l5-operator/controllers"
+	"github.com/opdev/l5-operator-demo/controllers"
 	//+kubebuilder:scaffold:imports
 )
 

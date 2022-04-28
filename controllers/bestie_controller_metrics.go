@@ -28,15 +28,15 @@ var (
 			Help: "Number of successful bestie application upgrades processed",
 		},
 	)
-	applicationUpgradeFailuresCounter = prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Name: "bestie_upgrade_failures_counter",
-			Help: "Number of failed bestie application upgrades",
+	applicationUpgradeFailure = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "bestie_upgrade_failure",
+			Help: "1 if ImagePullBackOff, otherwise 0",
 		},
 	)
 )
 
 func init() {
 	// Register custom metrics with the global prometheus registry
-	metrics.Registry.MustRegister(applicationUpgradeCounter, applicationUpgradeFailuresCounter)
+	metrics.Registry.MustRegister(applicationUpgradeCounter, applicationUpgradeFailure)
 }

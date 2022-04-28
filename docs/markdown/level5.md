@@ -4,10 +4,12 @@ Can your operator:
 - Auto-scale?
 - Move Workloads?
 - Restart internal resources?
+
 ---
 #### Enabling HPA
 - Set MaxReplicas to activate it.
-````
+
+```
 func horizontalpodautoscalers(ctx context.Context, bestieDeployment appsv1.Deployment, bestie v1.Bestie, client cli.Client, r *runtime.Scheme) error {
 	desired := []autoscalingv1.HorizontalPodAutoscaler{}
 
@@ -22,15 +24,19 @@ func horizontalpodautoscalers(ctx context.Context, bestieDeployment appsv1.Deplo
 	}
 	return nil
 }
-````
-
+```
 
 ---
+
 #### Fake load Demo
+```
+kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
+```
 
+```
 kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
-````
-kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
-````
+```
+
 ---
+
 #### Thank you!

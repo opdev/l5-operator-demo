@@ -63,7 +63,7 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bes
 		fileName := "config/resources/bestie-deploy.yaml"
 		err := r.applyManifests(ctx, bestie, dp, fileName)
 		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			return ctrl.Result{}, fmt.Errorf("Unable to apply deployment manifest - %w", err)
 		}
 	}
 	return ctrl.Result{}, err

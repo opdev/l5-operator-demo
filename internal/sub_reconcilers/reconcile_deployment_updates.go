@@ -115,21 +115,25 @@ func (r *DeploymentImageReconciler) upgradeOperand(ctx context.Context, bestie *
 	}
 
 	// compare current container image to spec image
-	bestieImageDifferent := !reflect.DeepEqual(dp.Spec.Template.Spec.Containers[0].Image, getBestieContainerImage(bestie))
-
-	if bestieImageDifferent {
-		if bestieImageDifferent {
-			r.Log.Info("Upgrade Operand")
-			dp.Spec.Template.Spec.Containers[0].Image = getBestieContainerImage(bestie)
+	imageInDeployment := "unknown"
+	positionInContainerArray := 0
+	for pos, container := range dp.Spec.Template.Spec.Containers {
+		if container.Name == "bestie" {
+			imageInDeployment = container.Image
+			positionInContainerArray = pos
 		}
-		err = r.client.Update(ctx, dp)
-		if err != nil {
-			r.Log.Error(err, "Deployment failed.")
-			return err
-		}
-		// Level 4 Add metrics
-		bestie_metrics.ApplicationUpgradeCounter.Inc()
 	}
+	if imageInDeployment != getBestieContainerImage(bestie) {
+		r.Log.Info("Updating deployment")
+		dp.Spec.Template.Spec.Containers[positionInContainerArray].Image = getBestieContainerImage(bestie)
+	}
+	err = r.client.Update(ctx, dp)
+	if err != nil {
+		r.Log.Error(err, "Failed to update deployment")
+		return err
+	}
+	// Level 4 Add metrics
+	bestie_metrics.ApplicationUpgradeCounter.Inc()
 	return nil
 }
 

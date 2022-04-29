@@ -37,10 +37,6 @@ type BestieSpec struct {
 	// The bestie app version
 	Version string `json:"version,omitempty"`
 
-	// Replicas is the number of pod instances for Bestie Deployment if using the autoscaling feature
-	// +optional
-	Replicas *int32 `json:"replicas,omitempty"`
-
 	// MaxReplicas sets an upper bound to the autoscaling feature. If MaxReplicas is set autoscaling is enabled.
 	// +optional
 	MaxReplicas *int32 `json:"maxReplicas,omitempty"`

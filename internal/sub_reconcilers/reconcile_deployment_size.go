@@ -19,6 +19,8 @@ package sub_reconcilers
 import (
 	"context"
 
+	"github.com/opdev/l5-operator-demo/internal/bestie_errors"
+
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2beta2"
@@ -59,6 +61,11 @@ func (r *DeploymentSizeReconciler) Reconcile(ctx context.Context, bestie *petsv1
 	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, bestieDeployment)
 	if err != nil {
 		r.Log.Error(err, "unable to retrieve deployment")
+	}
+	// Validate that MaxReplicas is greater than or equal to size.
+	if !(*bestie.Spec.MaxReplicas >= bestie.Spec.Size) {
+		log.Error(bestie_errors.InvalidDeploymentSizeValue, "Invalid Deployment Size Value")
+		return ctrl.Result{}, err
 	}
 	size := bestie.Spec.Size
 	// TODO check if autoscaling is enabled in a better way ?

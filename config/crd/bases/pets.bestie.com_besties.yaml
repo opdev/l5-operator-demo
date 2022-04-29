@@ -44,11 +44,6 @@ spec:
                   If MaxReplicas is set autoscaling is enabled.
                 format: int32
                 type: integer
-              replicas:
-                description: Replicas is the number of pod instances for Bestie Deployment
-                  if using the autoscaling feature
-                format: int32
-                type: integer
               size:
                 description: The size of the deployment
                 format: int32

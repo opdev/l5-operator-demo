@@ -18,7 +18,7 @@
 
 ---
 #### What to backup ?
-- databse
+- database
 - custom resource
 
 <aside class="notes">

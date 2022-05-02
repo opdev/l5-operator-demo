@@ -19,6 +19,10 @@ package sub_reconcilers
 import (
 	"context"
 	"fmt"
+	"os"
+
+	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,7 +33,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
-	"github.com/opdev/l5-operator-demo/internal/util"
 )
 
 type DeploymentReconciler struct {
@@ -61,18 +64,44 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bes
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Creating a new app for bestie")
 		fileName := "config/resources/bestie-deploy.yaml"
-		err := r.applyManifests(ctx, bestie, dp, fileName)
+		err := r.applyDeploymentFromFile(ctx, bestie, *dp.DeepCopy(), fileName)
 		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			return ctrl.Result{}, fmt.Errorf("Unable to apply deployment manifest - %w", err)
 		}
 	}
 	return ctrl.Result{}, err
 }
 
-func (r *DeploymentReconciler) applyManifests(ctx context.Context, bestie *petsv1.Bestie, obj client.Object, fileName string) error {
-	err := util.ApplyManifests(r.client, r.Scheme, ctx, bestie, obj, fileName)
+func (r *DeploymentReconciler) applyDeploymentFromFile(ctx context.Context, bestie *petsv1.Bestie, obj appsv1.Deployment, fileName string) error {
+
+	yaml, err := os.ReadFile(fileName)
 	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Couldn't read manifest file for: %s", fileName))
 		return err
 	}
-	return err
+	if err = yamlutil.Unmarshal(yaml, &obj); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Couldn't unmarshall yaml file for: %s", fileName))
+		return err
+	}
+	//apply values from the cr to the deployment object read from the template file
+	obj.SetNamespace(bestie.Namespace)
+	obj.Spec.Replicas = &bestie.Spec.Size
+	containerPosition := 0
+	for pos, container := range obj.Spec.Template.Spec.Containers {
+		if container.Name == "bestie" {
+			containerPosition = pos
+		}
+	}
+	obj.Spec.Template.Spec.Containers[containerPosition].Image = fmt.Sprintf("%s:%s", bestie.Spec.Image, bestie.Spec.Version)
+	err = controllerutil.SetControllerReference(bestie, &obj, r.Scheme)
+	if err != nil {
+		r.Log.Error(err, "Failed to set controller reference on the %s", obj.Name)
+		return err
+	}
+	err = r.client.Create(ctx, &obj)
+	if err != nil {
+		r.Log.Error(err, "Failed to create object", "object", obj.GetName())
+		return err
+	}
+	return nil
 }

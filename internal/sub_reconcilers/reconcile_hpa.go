@@ -19,6 +19,9 @@ package sub_reconcilers
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/opdev/l5-operator-demo/internal/bestie_errors"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
@@ -54,13 +57,15 @@ func (r *HPAReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bestie) (c
 		Name:      "HPAReconciler",
 	}
 	log := r.Log.WithValues("hpa", logInfo)
-	// Reconciling HPA.
 	// check if deployment exists
 	bestieDeployment := &appsv1.Deployment{}
 	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, bestieDeployment)
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("No deployment yet, requeue for hpa creation")
+		delay := time.Second * 5
+		return ctrl.Result{Requeue: true, RequeueAfter: delay}, nil
 	}
+	// check if hpa exists and is enabled
 	log.Info("Reconcile hpa if it does not exist and maxreplicas is set")
 	autoScaler := &autoscalingv2.HorizontalPodAutoscaler{}
 	err = r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-hpa", Namespace: bestie.Namespace}, autoScaler)
@@ -71,14 +76,22 @@ func (r *HPAReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bestie) (c
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
-	err = r.updateHorizontalPodAutoScaler(ctx, *bestie.DeepCopy(), *autoScaler.DeepCopy())
-	if err != nil {
-		return ctrl.Result{Requeue: true}, err
+	// update hpa minreplicas in case size has been updated
+	if err == nil && autoScaler.Spec.MinReplicas != &bestie.Spec.Size {
+		err = r.updateHorizontalPodAutoScaler(ctx, *bestie.DeepCopy(), *autoScaler.DeepCopy())
+		if err != nil {
+			return ctrl.Result{Requeue: true}, err
+		}
 	}
 	return ctrl.Result{}, nil
 }
 
 func (r *HPAReconciler) createHorizontalPodAutoscaler(ctx context.Context, bestie petsv1.Bestie, bestieDeployment appsv1.Deployment) error {
+	// Validate that MaxReplicas is greater than or equal to size.
+	if !(*bestie.Spec.MaxReplicas >= bestie.Spec.Size) {
+		r.Log.Error(bestie_errors.InvalidMaxReplicasValue, "Invalid MaxReplicas Value aborting HPA creation")
+		return bestie_errors.InvalidMaxReplicasValue
+	}
 	r.Log.Info("MaxReplicas is set, enabling HPA")
 	target := hpa.AutoScaler(r.Log, bestieDeployment, bestie)
 	if err := controllerutil.SetControllerReference(&bestie, &target, r.Scheme); err != nil {

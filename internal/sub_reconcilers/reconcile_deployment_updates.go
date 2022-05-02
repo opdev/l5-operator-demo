@@ -52,7 +52,7 @@ func NewDeploymentImageReconciler(client client.Client, log logr.Logger, scheme 
 }
 
 const (
-	BestieDefaultImage   = "quay.io/mkong/bestiev2"
+	BestieDefaultImage   = "quay.io/opdev/bestie"
 	BestieDefaultVersion = "1.3"
 )
 

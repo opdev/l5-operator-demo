@@ -63,7 +63,7 @@ func (r *DeploymentSizeReconciler) Reconcile(ctx context.Context, bestie *petsv1
 		r.Log.Error(err, "unable to retrieve deployment")
 	}
 	// Validate that MaxReplicas is greater than or equal to size.
-	if !(*bestie.Spec.MaxReplicas >= bestie.Spec.Size) {
+	if bestie.Spec.MaxReplicas != nil && !(*bestie.Spec.MaxReplicas >= bestie.Spec.Size) {
 		log.Error(bestie_errors.InvalidDeploymentSizeValue, "Invalid Deployment Size Value")
 		return ctrl.Result{}, err
 	}
@@ -81,5 +81,5 @@ func (r *DeploymentSizeReconciler) Reconcile(ctx context.Context, bestie *petsv1
 			}
 		}
 	}
-	return ctrl.Result{}, err
+	return ctrl.Result{}, nil
 }

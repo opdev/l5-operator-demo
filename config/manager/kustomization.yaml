@@ -12,5 +12,4 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: quay.io/rocrisp/bestie-controller
-  newTag: "2.2"
+  newName: quay.io/opdev/l5-operator

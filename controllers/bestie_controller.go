@@ -53,7 +53,7 @@ type BestieReconciler struct {
 //+kubebuilder:rbac:groups="",resources=configmaps;endpoints;events;persistentvolumeclaims;pods;namespaces;secrets;serviceaccounts;services;services/finalizers,verbs=*
 //+kubebuilder:rbac:groups=postgres-operator.crunchydata.com,resources=postgresclusters,verbs=*
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=*
-//+kubebuilder:rbac:groups=monitoring.coreos.com,resources=prometheuses;servicemonitors,prometheusrule,verbs=*
+//+kubebuilder:rbac:groups=monitoring.coreos.com,resources=prometheuses;servicemonitors;prometheusrule,verbs=*
 //+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to

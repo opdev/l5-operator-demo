@@ -83,7 +83,7 @@ func (r *HPAReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bestie) (c
 			return ctrl.Result{Requeue: true}, err
 		}
 	}
-	return ctrl.Result{}, err
+	return ctrl.Result{}, nil
 }
 
 func (r *HPAReconciler) createHorizontalPodAutoscaler(ctx context.Context, bestie petsv1.Bestie, bestieDeployment appsv1.Deployment) error {

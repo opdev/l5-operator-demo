@@ -2,7 +2,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: bestie-alert
-  namespace: bestie
 spec:
   groups:
   - name: example

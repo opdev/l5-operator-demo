@@ -14,14 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package reconcilers
+package sub_reconcilers
 
 import (
 	"context"
+
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 )
 
 type Reconciler interface {
-	Reconcile(ctx context.Context, bestie *petsv1.Bestie) (bool, error)
+	Reconcile(ctx context.Context, bestie *petsv1.Bestie) (ctrl.Result, error)
 }

@@ -305,7 +305,7 @@ load-image-all: load-image-operator
 
 .PHONY: load-image-operator
 load-image-operator:
-	kind load docker-image localhost/local/bestie-operator:e2e
+	kind load docker-image local/bestie-operator:e2e
 
 .PHONY: start-kind
 start-kind:

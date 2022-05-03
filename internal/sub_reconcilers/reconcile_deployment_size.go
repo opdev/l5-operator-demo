@@ -18,6 +18,8 @@ package sub_reconcilers
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/opdev/l5-operator-demo/internal/bestie_errors"
 
@@ -59,8 +61,11 @@ func (r *DeploymentSizeReconciler) Reconcile(ctx context.Context, bestie *petsv1
 	HorizontalPodAutoScalar := &autoscalingv2.HorizontalPodAutoscaler{}
 	// get latest instance of deployment
 	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, bestieDeployment)
-	if err != nil {
-		r.Log.Error(err, "unable to retrieve deployment")
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("No deployment initiated, deployment has not completed. Requeue.")
+		delay := time.Second * time.Duration(5)
+		log.Info(fmt.Sprintf("will retry after waiting for %s", delay))
+		return ctrl.Result{RequeueAfter: delay}, nil
 	}
 	// Validate that MaxReplicas is greater than or equal to size.
 	if bestie.Spec.MaxReplicas != nil && !(*bestie.Spec.MaxReplicas >= bestie.Spec.Size) {

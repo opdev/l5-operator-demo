@@ -20,12 +20,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -57,11 +59,33 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bes
 	log := r.Log.WithValues("deployment", logInfo)
 
 	// TODO wait for db to be seeded
+	job := &batchv1.Job{}
+	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-job", Namespace: bestie.Namespace}, job)
+	if err != nil && errors.IsNotFound(err) {
+		log.Info("No job initiated, job has not completed. Requeue to create deployment.")
+		delay := time.Second * time.Duration(5)
+		log.Info(fmt.Sprintf("will retry after waiting for %s", delay))
+		return ctrl.Result{RequeueAfter: delay}, nil
+	}
+
+	jobComplete := false
+	if job.Status.Succeeded >= *job.Spec.Completions {
+		jobComplete = true
+	}
+
+	if !jobComplete {
+		// If postgres is not ready yet, requeue after delay seconds.
+		delay := time.Second * time.Duration(15)
+		log.Info(fmt.Sprintf("job is instantiating, waiting for %s", delay))
+		// implement requeue after delay in subreconciler
+		return ctrl.Result{RequeueAfter: delay}, nil
+	}
+
 	// reconcile Deployment.
 	log.Info("reconcile deployment if it does not exist")
 	dp := &appsv1.Deployment{}
-	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
-	if err != nil && errors.IsNotFound(err) {
+	err = r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
+	if err != nil && errors.IsNotFound(err) && jobComplete {
 		log.Info("Creating a new app for bestie")
 		fileName := "config/resources/bestie-deploy.yaml"
 		err := r.applyDeploymentFromFile(ctx, bestie, *dp.DeepCopy(), fileName)

@@ -5,11 +5,10 @@ artifactsDir: ./tests/_build/artifacts/
 kindContainers:
   - local/bestie-operator:e2e
 commands:
-  - command: make generate
-  - command: make manifests
-  - command: make install
-  - command: make run &
-  - command: kubectl get pods -n bestie
+  - command: make cert-manager
+  - command: kubectl apply -f ./tests/_build/manifests/bestie-operator.yaml
+  - command: kubectl wait --timeout=5m --for=condition=available deployment l5-operator-controller-manager -n l5-operator-system
+  - command: kubectl get pods -n l5-operator-system
   - command: sleep 60s
 testDirs:
   - ./tests/e2e/

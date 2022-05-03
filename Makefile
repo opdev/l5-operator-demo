@@ -36,6 +36,8 @@ IMAGE_TAG_BASE ?= opdev/l5-operator
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
+OPERATOR_SDK_VERSION ?= 1.17.0
+
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_TAG_BASE)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
@@ -226,6 +228,17 @@ catalog-push: ## Push a catalog image.
 lint:
 	golangci-lint run
 
+
+OPERATOR_SDK = $(shell pwd)/bin/operator-sdk
+.PHONY: operator-sdk
+operator-sdk:
+	@{ \
+	set -e ;\
+	[ -d bin ] || mkdir bin ;\
+	curl -L -o $(OPERATOR_SDK) https://github.com/operator-framework/operator-sdk/releases/download/v${OPERATOR_SDK_VERSION}/operator-sdk_`go env GOOS`_`go env GOARCH`;\
+	chmod +x $(OPERATOR_SDK) ;\
+	}
+
 # end-to-tests
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -279,6 +292,10 @@ endif
 set-image-controller: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 
+.PHONY: set-test-image-vars
+set-test-image-vars:
+	$(eval IMG=local/bestie-operator:e2e)
+
 .PHONY: container
 container:
 	podman build -t ${IMG} .
@@ -292,7 +309,14 @@ e2e:
 	$(KUTTL) test
 
 .PHONY: prepare-e2e
-prepare-e2e: kuttl set-image-controller container start-kind
+prepare-e2e: kuttl set-test-image-vars set-image-controller container start-kind load-image-all
 	mkdir -p tests/_build/crds tests/_build/manifests
 	$(KUSTOMIZE) build config/default -o tests/_build/manifests/bestie-operator.yaml
 	$(KUSTOMIZE) build config/crd -o tests/_build/crds/
+
+.PHONY: load-image-all
+load-image-all: load-image-operator 
+
+.PHONY: load-image-operator
+load-image-operator:
+	kind load docker-image local/bestie-operator:e2e

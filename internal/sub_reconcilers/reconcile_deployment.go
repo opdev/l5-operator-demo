@@ -74,10 +74,8 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bes
 	}
 
 	if !jobComplete {
-		// If postgres is not ready yet, requeue after delay seconds.
 		delay := time.Second * time.Duration(15)
-		log.Info(fmt.Sprintf("job is instantiating, waiting for %s", delay))
-		// implement requeue after delay in subreconciler
+		log.Info(fmt.Sprintf("database seeding job has not yet completed, waiting %s seconds", delay))
 		return ctrl.Result{RequeueAfter: delay}, nil
 	}
 

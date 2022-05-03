@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/opdev/l5-operator
-  newTag: "1.0"
+  newTag: v0.0.1

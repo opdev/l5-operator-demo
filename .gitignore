@@ -15,7 +15,6 @@ testbin/*
 *.out
 
 # Kubernetes Generated files - skip generated files, except for vendored files
-
 !vendor/**/zz_generated.*
 
 # editor and IDE paraphernalia
@@ -30,3 +29,6 @@ tests/_build/
 
 # MacOS related artifacts
 .DS_Store
+
+# Logs
+logs.txt

@@ -5,7 +5,7 @@ plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: l5-operator
-repo: github.com/opdev/l5-operator-demo/l5-operator
+repo: github.com/opdev/l5-operator-demo
 resources:
 - api:
     crdVersion: v1
@@ -14,6 +14,6 @@ resources:
   domain: bestie.com
   group: pets
   kind: Bestie
-  path: github.com/opdev/l5-operator-demo/l5-operator/api/v1
+  path: github.com/opdev/l5-operator-demo/api/v1
   version: v1
 version: "3"

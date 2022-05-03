@@ -20,6 +20,8 @@ import (
 	"flag"
 	"os"
 
+	"github.com/opdev/l5-operator-demo/internal/util"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
@@ -29,7 +31,7 @@ import (
 
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 
-	petsv1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
+	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -38,7 +40,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/opdev/l5-operator-demo/l5-operator/controllers"
+	"github.com/opdev/l5-operator-demo/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -79,13 +81,12 @@ func main() {
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "9b140e36.bestie.com",
 	})
-
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if controllers.IsRouteAPIAvailable() {
+	if util.IsRouteAPIAvailable() {
 		if err := routev1.Install(mgr.GetScheme()); err != nil {
 			setupLog.Error(err, "")
 			os.Exit(1)

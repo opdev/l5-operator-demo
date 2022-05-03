@@ -13,33 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+package bestie_errors
 
-package hpa
+import "errors"
 
-import (
-	"reflect"
-	"testing"
-
-	v1 "github.com/opdev/l5-operator-demo/l5-operator/api/v1"
-)
-
-func TestLabels(t *testing.T) {
-	type args struct {
-		bestie v1.Bestie
-		labels []string
-	}
-	tests := []struct {
-		name string
-		args args
-		want map[string]string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := Labels(tt.args.bestie, tt.args.labels); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Labels() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+var InvalidMaxReplicasValue = errors.New("MaxReplicas should be greater than deployment size to avoid contention between the deployment and horizontal pod autoscaling controllers")
+var InvalidDeploymentSizeValue = errors.New("Deployment size should be less than MaxReplicas to avoid contention between the deployment and horizontal pod autoscaling controllers")

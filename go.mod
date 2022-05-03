@@ -1,4 +1,4 @@
-module github.com/opdev/l5-operator-demo/l5-operator
+module github.com/opdev/l5-operator-demo
 
 go 1.17
 

@@ -10,7 +10,7 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: Bestie is the Schema for the besties API
+    - description: Bestie is the Schema for the besties API.
       displayName: Bestie
       kind: Bestie
       name: besties.pets.bestie.com

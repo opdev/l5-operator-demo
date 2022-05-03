@@ -18,29 +18,62 @@
 			<div class="slides">
 
 				<section>
-					<img src="https://i.imgur.com/vKFMlIj.png" alt="l5 logo" width="50%" style="text-align: none;"/>
+					<img src="https://i.imgur.com/vKFMlIj.png" alt="l5 logo" width="50%" style="text-align: none;" />
 				</section>
 
 
 				<section>
-					<h3><b>What is an <span style="color:rgb(212, 18, 18);">opertator</span> ?</b></h3>
-					<p class="fragment fade-up" style="color:rgba(255, 255, 255, 0.75);">An <u>opertator</u> is a method of packaging, deploying, and managing an application by extending the functionality of the Kubernetes API </p>
+					<h2>From Zero to <span style="color:red">Auto Pilot</span>:</h2>
+					<p>Exploring Kubernetes Operator Capability Levels</p>
 				</section>
 
 
-				<section>
-					<h4>What is the L5 operator &</h4>
-						<p class="fragment fade-up" style="color:rgba(255, 255, 255, 0.75); font-size:1.25vw">The L5 operator is a demo operator that consumes a flask app and utilizes the Crunchy Postgres Operator.</p>
-					<br>
-					<h4>Why was it created?</h4>
-						<p class="fragment fade-up" style="color:rgba(255, 255, 255, 0.75); font-size:1.25vw">Following the Operator Framework, the L5 operator was created to demonstrate the capabilities of an operator from Level 1: Basic Installation to Level 5: Auto Pilot.</p>
+				<section data-auto-animate>
+					<h3>What is the L5 operator <a href="https://bestie-rescue.herokuapp.com/">?</a></h3>
+					<p class="fragment fade-up">What is an <span style="color:red">Auto Pilot</span> operator?</p>
+					<aside class="notes">
+						- The L5 operator is an operator with autopilot capabilities that manages and consumes a flask app with a postgres database utilizing
+						the Crunchy Postgres Operator.
+						<br>
+						- Following the Operator Framework, the L5 operator was created to demonstrate the capabilities of an operator
+						from Level 1:basic installation to Level 5:autopilot.
+						<br>
+						- With an autopilot operator being our end goal for our operator
+						- What is an autopilot operator... *transition to the next slide*
+						<br>
+						- The Operator Framework defines that very will in their capabilities model
+					</aside>
 				</section>
 
 
 				<section>
 					<h2>Operator Framework</h2>
 					<img src="https://i.imgur.com/5I5Eet4.jpg" alt="capability levels">
+					<aside class="notes">
+						<p>
+							- Operator Framework is an open source toolkit used to manage Operators,
+							in an effective, automated, and scalable way.
+						<br>
+							- Operators come in different maturity levels so this
+							capability model aims to provide a guide as to what features users can
+							expect from an Operator.
+						<br>
+							- The operator framework defines 5 levels of operator capabilities. level 1: basic install, level 2: seamless
+							upgrade, level 3: backup & restore, level 4: deep insights, and level 5: autopilot.
+						<br>
+							- Our goal with the l5-operator is to showcase all the capabilities of an operator all the way until it reaches complete autopilot
+							- An autopilot operator can auto-scale, auto-heal, auto-tune, & detect abnormailities(deviations from standard performance and act on it automatically or alert us)
+						<br>
+							- Currently on operatorhub.io
+							70% of the published operators have level 2 capabilities and only 5% of operators have level 5 capabilities.
+						<br>
+							- In this presentation we hope to enable our participants to create operators with greater capabilities as well as add more
+							capabilities to existing operators hoping to bring their operators to autopilot as well.
+						<br>
+						</p>
+					</aside>
 				</section>
+
 
 				<!-- LEVEL 1 -->
 				<section>
@@ -49,6 +82,9 @@
 						<img src="https://i.imgur.com/ECOGdmD.jpg" alt="level 1 capability" />
 					</section>
 					<section data-markdown="markdown/level1.md"></section>
+					<aside class="notes">
+						Provisioning of the resources required
+					</aside>
 				</section>
 
 

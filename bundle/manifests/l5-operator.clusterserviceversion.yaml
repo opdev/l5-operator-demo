@@ -21,7 +21,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.19.1
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: l5-operator.v0.0.1
+  name: l5-operator.v0.0.2
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -182,7 +182,7 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
-                image: quay.io/opdev/l5-operator:v0.0.1
+                image: quay.io/opdev/l5-operator:v0.0.2
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -265,4 +265,4 @@ spec:
   provider:
     name: Provider Name
     url: https://your.domain
-  version: 0.0.1
+  version: 0.0.2

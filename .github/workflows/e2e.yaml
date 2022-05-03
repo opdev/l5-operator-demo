@@ -32,9 +32,6 @@ jobs:
     - name: "Install Kustomize"
       run: ./hack/setup-kustomize.sh
     
-    - name: "Install PGO"
-      run: ./hack/install-pgo.sh
-    
     - name: "Install Operator-sdk"
       run: make operator-sdk
 

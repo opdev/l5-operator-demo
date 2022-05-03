@@ -300,6 +300,13 @@ set-test-image-vars:
 container:
 	podman build -t ${IMG} .
 
+.PHONY: load-image-all
+load-image-all: load-image-operator 
+
+.PHONY: load-image-operator
+load-image-operator:
+	kind load docker-image localhost/local/bestie-operator:e2e
+
 .PHONY: start-kind
 start-kind:
 	kind create cluster --config $(KIND_CONFIG)
@@ -313,10 +320,3 @@ prepare-e2e: kuttl set-test-image-vars set-image-controller container start-kind
 	mkdir -p tests/_build/crds tests/_build/manifests
 	$(KUSTOMIZE) build config/default -o tests/_build/manifests/bestie-operator.yaml
 	$(KUSTOMIZE) build config/crd -o tests/_build/crds/
-
-.PHONY: load-image-all
-load-image-all: load-image-operator 
-
-.PHONY: load-image-operator
-load-image-operator:
-	kind load docker-image local/bestie-operator:e2e

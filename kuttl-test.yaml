@@ -3,7 +3,7 @@ kind: TestSuite
 crdDir: ./tests/_build/crds/
 artifactsDir: ./tests/_build/artifacts/
 kindContainers:
-  - local/bestie-operator:e2e
+  - localhost/local/bestie-operator:e2e
 commands:
   - command: kubectl apply -f ./tests/_build/manifests/bestie-operator.yaml
   - command: kubectl wait --timeout=5m --for=condition=available deployment l5-operator-controller-manager -n l5-operator-system

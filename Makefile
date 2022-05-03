@@ -298,7 +298,7 @@ set-test-image-vars:
 
 .PHONY: container
 container:
-	podman build -t ${IMG} .
+	docker build -t ${IMG} .
 
 .PHONY: load-image-all
 load-image-all: load-image-operator 

@@ -8,11 +8,11 @@ commands:
   - command: kubectl apply -f ./tests/_build/manifests/bestie-operator.yaml
   - command: kubectl wait --timeout=5m --for=condition=available deployment l5-operator-controller-manager -n l5-operator-system
   - command: kubectl get pods -n l5-operator-system
-  - command: sleep 60s
+  - command: sleep 20s
+  - command: kubectl wait --timeout=5m --for=condition=available deployment pgo-upgrade -n postgres-operator
+  - command: kubectl wait --timeout=5m --for=condition=available deployment pgo -n postgres-operator
+  - command: sleep 5s
   - command: kubectl get pods -n postgres-operator
-  - command: sleep 10s
-  - command: kubectl get pods -n postgres-operator
-  - command: sleep 10s
 testDirs:
   - ./tests/e2e/
 timeout: 300

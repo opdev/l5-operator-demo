@@ -4,6 +4,6 @@ metadata:
   name: bestie
 spec:
   size: 3
-  image: quay.io/opdev/l5-operator
+  image: quay.io/opdev/bestie
   maxReplicas: 10
-  version: "v0.0.2"
+  version: "1.3"

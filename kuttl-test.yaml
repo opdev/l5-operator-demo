@@ -9,6 +9,10 @@ commands:
   - command: kubectl wait --timeout=5m --for=condition=available deployment l5-operator-controller-manager -n l5-operator-system
   - command: kubectl get pods -n l5-operator-system
   - command: sleep 60s
+  - command: kubectl get pods -n postgres-operator
+  - command: sleep 10s
+  - command: kubectl get pods -n postgres-operator
+  - command: sleep 10s
 testDirs:
   - ./tests/e2e/
-timeout: 150
+timeout: 300

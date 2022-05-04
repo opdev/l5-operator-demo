@@ -322,12 +322,18 @@ create-crds:
     kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/release-0.43/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml ;\
     kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/release-0.43/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
 
+.PHONY: install-pgo
+install-pgo:
+	sudo git clone https://github.com/CrunchyData/postgres-operator-examples.git
+	kubectl apply -k postgres-operator-examples/kustomize/install/namespace
+	kubectl apply --server-side -k postgres-operator-examples/kustomize/install/default
+
 .PHONY: e2e
 e2e:
 	$(KUTTL) test
 
 .PHONY: prepare-e2e
-prepare-e2e: kuttl set-test-image-vars set-image-controller container start-kind create-crds load-image-all
+prepare-e2e: kuttl set-test-image-vars set-image-controller container start-kind create-crds install-pgo load-image-all
 	mkdir -p tests/_build/crds tests/_build/manifests
 	$(KUSTOMIZE) build config/default -o tests/_build/manifests/bestie-operator.yaml
 	$(KUSTOMIZE) build config/crd -o tests/_build/crds/

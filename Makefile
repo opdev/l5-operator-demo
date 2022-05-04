@@ -328,12 +328,16 @@ install-pgo:
 	kubectl apply -k postgres-operator-examples/kustomize/install/namespace
 	kubectl apply --server-side -k postgres-operator-examples/kustomize/install/default
 
+.PHONY: metrics
+metrics:
+	kubectl apply -f hack/metrics-server.yaml
+
 .PHONY: e2e
 e2e:
 	$(KUTTL) test
 
 .PHONY: prepare-e2e
-prepare-e2e: kuttl set-test-image-vars set-image-controller container start-kind create-crds install-pgo load-image-all
+prepare-e2e: kuttl set-test-image-vars set-image-controller container start-kind create-crds metrics install-pgo load-image-all
 	mkdir -p tests/_build/crds tests/_build/manifests
 	$(KUSTOMIZE) build config/default -o tests/_build/manifests/bestie-operator.yaml
 	$(KUSTOMIZE) build config/crd -o tests/_build/crds/

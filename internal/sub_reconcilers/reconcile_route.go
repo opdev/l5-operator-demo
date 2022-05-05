@@ -64,7 +64,7 @@ func (r *RouteReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bestie) 
 			fileName := "config/resources/bestie-route.yaml"
 			err := r.applyManifests(ctx, bestie, route, fileName)
 			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+				return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
 			}
 		}
 	} else {

@@ -22,3 +22,6 @@ linters:
     - exhaustive
     - godot
     - unparam
+    - varcheck
+    - deadcode
+    - gocyclo

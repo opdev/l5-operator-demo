@@ -23,6 +23,10 @@ testbin/*
 *.swo
 *~
 
+# test resources
+kubeconfig
+tests/_build/
+
 # MacOS related artifacts
 .DS_Store
 

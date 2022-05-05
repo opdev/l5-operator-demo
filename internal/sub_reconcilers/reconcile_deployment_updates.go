@@ -241,21 +241,21 @@ func getPodNamesandStatuses(pods []corev1.Pod) []string {
 
 // getPodNameandStatuses returns the pod names+status of the array of pods passed in.
 func getPodstatusReason(pods []corev1.Pod) float64 {
-	// return 0 if not found, otherwise return 1
+	// return 0 if not found, otherwise return 1.
 	for _, pod := range pods {
 		pendingState := string(pod.Status.Phase)
 		if pendingState == "Pending" &&
-		   len(pod.Status.ContainerStatuses) > 0 &&
-		   len(pod.Status.ContainerStatuses[0].State.Waiting.Reason) > 0 {
-		      errorImagePull := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
-			    imagePullBackOff := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
-			    if errorImagePull == "ErrImagePull" ||
-				   imagePullBackOff == "ImagePullBackOff" {
-				   return 1
-				}
+			len(pod.Status.ContainerStatuses) > 0 &&
+			len(pod.Status.ContainerStatuses[0].State.Waiting.Reason) > 0 {
+			errorImagePull := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
+			imagePullBackOff := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
+			if errorImagePull == "ErrImagePull" ||
+				imagePullBackOff == "ImagePullBackOff" {
+				return 1
+			}
 		}
 	}
-	return 0
+	return float64(0)
 }
 
 // CombineImageTag will return the combined image and tag in the proper format for tags and digests.

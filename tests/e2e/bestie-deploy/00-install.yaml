@@ -3,7 +3,7 @@ kind: Bestie
 metadata:
   name: bestie
 spec:
-  size: 3
+  size: 1
   image: quay.io/opdev/bestie
   maxReplicas: 10
   version: "1.3"

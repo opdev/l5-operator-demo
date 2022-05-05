@@ -248,7 +248,7 @@ func getPodstatusReason(pods []corev1.Pod) float64 {
 		   len(pod.Status.ContainerStatuses) > 0 &&
 		   len(pod.Status.ContainerStatuses[0].State.Waiting.Reason) > 0 {
 		      errorImagePull := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
-			  imagePullBackOff := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
+			    imagePullBackOff := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
 			    if errorImagePull == "ErrImagePull" ||
 				   imagePullBackOff == "ImagePullBackOff" {
 				   return 1

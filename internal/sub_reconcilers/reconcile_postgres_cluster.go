@@ -60,7 +60,7 @@ func (r *PostgresClusterCRReconciler) Reconcile(ctx context.Context, bestie *pet
 		fileName := "config/resources/postgrescluster.yaml"
 		err := r.applyManifests(ctx, bestie, pgo, fileName)
 		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
 		}
 	}
 	return ctrl.Result{}, err

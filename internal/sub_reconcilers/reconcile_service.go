@@ -62,7 +62,7 @@ func (r *ServiceReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bestie
 			fileName := "config/resources/bestie-svc.yaml"
 			err := r.applyManifests(ctx, bestie, svc, fileName)
 			if err != nil {
-				return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+				return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
 			}
 		} else {
 			return ctrl.Result{Requeue: true}, err

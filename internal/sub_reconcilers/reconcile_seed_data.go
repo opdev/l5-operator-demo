@@ -86,7 +86,7 @@ func (r *DatabaseSeedJobReconciler) Reconcile(ctx context.Context, bestie *petsv
 		fileName := "config/resources/bestie-job.yaml"
 		err := r.applyManifests(ctx, bestie, job, fileName)
 		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("Error during Manifests apply - %w", err)
+			return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
 		}
 	}
 	return ctrl.Result{}, nil

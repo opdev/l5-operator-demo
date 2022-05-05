@@ -239,9 +239,14 @@ func getPodNamesandStatuses(pods []corev1.Pod) []string {
 func getPodstatusReason(pods []corev1.Pod) float64 {
 	// return 0 if not found, otherwise return 1
 	for _, pod := range pods {
-		if string(pod.Status.Phase) == "Pending" {
-			if string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ErrImagePull" ||
-				string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ImagePullBackOff" {
+		pendingState := string(pod.Status.Phase)
+		if pendingState == "Pending" &&
+			len(pod.Status.ContainerStatuses) > 0 &&
+			len(pod.Status.ContainerStatuses[0].State.Waiting.Reason) > 0 {
+			errorImagePull := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
+			imagePullBackOff := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
+			if errorImagePull == "ErrImagePull" ||
+				imagePullBackOff == "ImagePullBackOff" {
 				return 1
 			}
 		}

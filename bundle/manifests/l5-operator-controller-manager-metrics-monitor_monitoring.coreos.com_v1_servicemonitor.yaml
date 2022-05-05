@@ -10,6 +10,7 @@ spec:
     path: /metrics
     port: https
     scheme: https
+    scrape_interval: 5s
     tlsConfig:
       insecureSkipVerify: true
   selector:

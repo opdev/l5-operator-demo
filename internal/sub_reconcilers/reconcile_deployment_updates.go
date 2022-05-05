@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -126,14 +127,15 @@ func (r *DeploymentImageReconciler) upgradeOperand(ctx context.Context, bestie *
 	if imageInDeployment != getBestieContainerImage(bestie) {
 		r.Log.Info("Updating deployment")
 		dp.Spec.Template.Spec.Containers[positionInContainerArray].Image = getBestieContainerImage(bestie)
+		err := r.client.Update(ctx, dp)
+		if err != nil {
+			r.Log.Error(err, "Failed to update deployment")
+			return err
+		}
+		// Level 4 Add metrics
+		r.Log.Info("update metric : ApplicationUpgradeCounter")
+		bestie_metrics.ApplicationUpgradeCounter.Inc()
 	}
-	err = r.client.Update(ctx, dp)
-	if err != nil {
-		r.Log.Error(err, "Failed to update deployment")
-		return err
-	}
-	// Level 4 Add metrics
-	bestie_metrics.ApplicationUpgradeCounter.Inc()
 	return nil
 }
 
@@ -200,27 +202,29 @@ func (r *DeploymentImageReconciler) updateApplicationStatus(ctx context.Context,
 		}
 	}
 
-	// Update status if needed
+	//Level 4 - Update metric.
+	if len(nonTerminatedPodList) > 0 {
+		rc := getPodstatusReason(nonTerminatedPodList)
+		r.Log.Info(fmt.Sprintf("update metric : ApplicationUpgradeFailure %f", rc))
+		bestie_metrics.ApplicationUpgradeFailure.Set(rc)
+	}
+
+	// Update status if needed.
 	appStatus := getPodNamesandStatuses(nonTerminatedPodList)
-	r.Log.Info(fmt.Sprintf("The pod status is %v", appStatus))
+	sort.Strings(appStatus)
+	sort.Strings(bestie.Status.PodStatus)
 
 	bestieStatusDifferent := !reflect.DeepEqual(appStatus, bestie.Status.PodStatus)
+
 	if bestieStatusDifferent {
-		r.Log.Info("Update bestie application status")
+		r.Log.Info("Pod Status different, update bestie application status")
 		bestie.Status.PodStatus = appStatus
 		err := r.client.Status().Update(ctx, bestie)
 		if err != nil {
-			r.Log.Error(err, "Failed to update bestie application status")
 			return ctrl.Result{}, err
 		}
-		// requeue
-		return ctrl.Result{Requeue: true}, nil
 	}
 
-	// Level 4 - Update metric
-	rc := getPodstatusReason(podList.Items)
-	r.Log.Info(fmt.Sprintf("return code for getPodstatusReason %f", rc))
-	bestie_metrics.ApplicationUpgradeFailure.Set(rc)
 	return ctrl.Result{}, nil
 }
 
@@ -239,9 +243,15 @@ func getPodNamesandStatuses(pods []corev1.Pod) []string {
 func getPodstatusReason(pods []corev1.Pod) float64 {
 	// return 0 if not found, otherwise return 1.
 	for _, pod := range pods {
-		if string(pod.Status.Phase) == "Pending" {
-			if string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ErrImagePull" || string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ImagePullBackOff" {
-				return float64(1)
+		pendingState := string(pod.Status.Phase)
+		if pendingState == "Pending" &&
+			len(pod.Status.ContainerStatuses) > 0 &&
+			len(pod.Status.ContainerStatuses[0].State.Waiting.Reason) > 0 {
+			errorImagePull := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
+			imagePullBackOff := string(pod.Status.ContainerStatuses[0].State.Waiting.Reason)
+			if errorImagePull == "ErrImagePull" ||
+				imagePullBackOff == "ImagePullBackOff" {
+				return 1
 			}
 		}
 	}

@@ -19,11 +19,19 @@
 ---
 #### What needs to be backed up ?
 - database
-- custom resource
 
 <aside class="notes">
   Speaker Notes:
   Our app is stateless we need only backup the db. We could also have some operator state stored in our custom resource and thats something that needs to be backed up as well.
+</aside>
+
+---
+#### Postgres Operator
+- A Database-as-a-Service but within our cluster
+
+<aside class="notes">
+  Speaker note:
+  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
 </aside>
 
 ---
@@ -62,6 +70,7 @@ Don't yet have a demo prepared but open to questions and feedback
 ---
 #### What about restores
 
+- In place point in time recovery
 ```
 spec:
   backups:

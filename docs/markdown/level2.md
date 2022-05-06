@@ -8,8 +8,7 @@ The version of the Operand is controlled by a field in our operators Custom Reso
 </aside>
 
 ---
-
-#### Minor version upgrades
+#### Minor versions
 - As easy as updating the image in our deployment
 
 <aside class="notes"> 
@@ -17,17 +16,18 @@ Since the "user interface" of our operator is the CR we can perform application 
 We get the desired version from custom resource and update the pod template in the deployment image if current version is different than the desired version 
 </aside>
 
-#### What if you have a bad version ?
 ---
+#### What if you have a bad version ?
 
-#### k8s has your back
+---
+#### K8s has your back
 - Liveness and Readiness probes
 - Ensure that your image is rolled out only if it is healthy
 
 <aside class="notes"> Failing liveness probe will restart the container, whereas failing readiness probe will stop our application from serving traffic.</aside>
 
 ---
-#### What if there are incompatible changes
+#### What if there are incompatible changes ?
 - Rollouts will be seamless as long as there are no breaking database changes
 
 <aside class="notes"> 

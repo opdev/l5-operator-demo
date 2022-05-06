@@ -36,12 +36,12 @@ IMAGE_TAG_BASE ?= opdev/l5-operator
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
-OPERATOR_SDK_VERSION ?= 1.17.0
+OPERATOR_SDK_VERSION ?= 1.20.0
 
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_REGISTRY)/$(IMAGE_TAG_BASE):v$(VERSION)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.22
+ENVTEST_K8S_VERSION = 1.23
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -51,7 +51,7 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 #Kind Tests
-KUBE_VERSION ?= 1.21
+KUBE_VERSION ?= 1.23
 KIND_CONFIG ?= kind-$(KUBE_VERSION).yaml
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.

@@ -78,7 +78,7 @@ Don't yet have a demo prepared but open to questions and feedback
 ---
 #### The "easy way"
 - Allow for some service disruption
-- Bake migration scripts into the application
+- Db changes should always be backward compatible
 - Always roll forward never backwards
 
 <aside class="notes">

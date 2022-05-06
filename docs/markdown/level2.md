@@ -1,21 +1,23 @@
 #### Upgrades
 - Operator
 - Operand (Our Application)
+
 <aside class="notes">
 Operator upgrades can be configured to be done automatically via the Operator Lifecycle Manager
 The version of the Operand is controlled by a field in our operators Custom Resource
 </aside>
 
 ---
+
 #### Minor version upgrades
 - As easy as updating the image in our deployment
+
 <aside class="notes"> 
 Since the "user interface" of our operator is the CR we can perform application updates by updating the our custom resource.
 We get the desired version from custom resource and update the pod template in the deployment image if current version is different than the desired version 
 </aside>
 
 #### What if you have a bad version ?
-
 ---
 
 #### k8s has your back
@@ -27,6 +29,7 @@ We get the desired version from custom resource and update the pod template in t
 ---
 #### What if there are incompatible changes
 - Rollouts will be seamless as long as there are no breaking database changes
+
 <aside class="notes"> 
 A bit more sophistication is needed requiring level 3 capabilities
 </aside>

@@ -1,4 +1,4 @@
-#### Seamless Upgrades
+#### Upgrades
 - Operator
 - Operand (Our Application)
 <aside class="notes">
@@ -25,10 +25,8 @@ We get the desired version from custom resource and update the pod template in t
 <aside class="notes"> Failing liveness probe will restart the container, whereas failing readiness probe will stop our application from serving traffic.</aside>
 
 ---
-#### What if there are Breaking Changes
+#### What if there are incompatible changes
 - Rollouts will be seamless as long as there are no breaking database changes
 <aside class="notes"> 
 A bit more sophistication is needed requiring level 3 capabilities
 </aside>
-
----

@@ -17,15 +17,6 @@
 </aside>
 
 ---
-#### What needs to be backed up ?
-- database
-
-<aside class="notes">
-  Speaker Notes:
-  Our app is stateless we need only backup the db. We could also have some operator state stored in our custom resource and thats something that needs to be backed up as well.
-</aside>
-
----
 #### Postgres Operator
 - A Database-as-a-Service but within our cluster
 

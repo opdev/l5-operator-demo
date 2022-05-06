@@ -96,6 +96,7 @@ An editable version of this diagram is on google drive via [draw.io](https://dri
 ![Deployment Diagram](docs/bestie_k8s.drawio.svg)
 
 ## Capability description
+The l5 operator is an example of a minimal implementation of the 5 capability levels described by the operator framework
 
 ### Level 1: Basic Install
 The L5 operator is able to take advantage of the Operator Lifecycle Manager and is able to deployed with one click. Once deployed it is able to set up its operator upon creation of a custom resource.

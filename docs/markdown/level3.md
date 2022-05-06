@@ -17,15 +17,6 @@
 </aside>
 
 ---
-#### Postgres Operator
-- Gives us backups for free
-
-<aside class="notes">
-  Speaker note:
-  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
-</aside>
-
----
 #### Backup Options
 - Write Ahead Logs
 - Scheduled and On Demand Backups Offsite

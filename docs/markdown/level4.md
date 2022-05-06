@@ -1,6 +1,6 @@
 #### recap
 
-Operators encapsulate operational tasks ( Sticky notes ) in code, so we can manage application lifecycle actions using Kubernetes APIs.  
+Operators encapsulate operational tasks ( Sticky notes ) in code so we can manage application lifecycle actions using Kubernetes APIs.  
 
 Sticky notes :
 - how to build/install ( level 1 )
@@ -12,6 +12,7 @@ Sticky notes :
 
 <aside class="notes">
 
+Speaker notes :
 So what additional skills a Kubernetes Operator performing manual task need to have.
 Well, there's the hidden stuff, not as flashy or fun stuff that sometimes called the plumbing.
 It's the networking parts ( level 1 ), it's the traffic management stuff ( level 1 ), It's also the visibility and monitoring ( Level 4 )
@@ -35,11 +36,39 @@ one thing I want to focus in (pause) on a little bit is the visibility and obser
 
 ---
 
-### Monitoring
+### Demo
 
-### Operator exposing metrics about its health
+- Export metrics to Prometheus Operator
+- Showcase metrics in Grafana Operator
 
-- Configure custom metric
+---
+
+### How is this done?
+
+By default, controller-runtime builds a global prometheus registry and publishes a collection of performance metrics for each controller. (https://book.kubebuilder.io/reference/metrics.html)
+
+### Protecting the Metrics
+
+The metrics are protected by kube-rbac-proxy ( https://github.com/brancz/kube-rbac-proxy )
+
+- Grand permission to your Prometheus server so that it can scrape the protected metrics.
+
+
+### Exporting Metrics for Promethus
+
+Scrape metrics with ServiceMonitor resource
+
+- Operator
+  - Operator-sdk create the ServiceMonitor to export metrics
+- Operand
+  - Create in the operand namespace
+
+---
+
+### Publish Custom Metrics for Prometheus
+
+- Declare collectors as global variables
+
 ```
 ApplicationUpgradeCounter = prometheus.NewCounter(
     prometheus.CounterOpts{
@@ -54,19 +83,27 @@ ApplicationUpgradeFailure = prometheus.NewGauge(
 		},
 	)
 ```
+---
 
-- Register custom metrics with the global prometheus registry
-```
-metrics.Registry.MustRegister(ApplicationUpgradeCounter, ApplicationUpgradeFailure)
-```
+- Register them using init() in the controller's package
 
-- Increment custom metrics counter
+```
+func init() {
+  metrics.Registry.MustRegister(ApplicationUpgradeCounter, ApplicationUpgradeFailure)
+}
+
+```
+---
+
+- Increment counter for operand upgrade
+
 ```
 bestie_metrics.ApplicationUpgradeCounter.Inc()
 
 ```
 
-- Set pod's state
+- Set the state for the operand upgrade
+
 ```
 bestie_metrics.ApplicationUpgradeFailure.Set(rc)
 ...
@@ -77,16 +114,15 @@ if string(pod.Status.Phase) == "Pending" {
         return 1
     }
 }
+return 0
 ```
+---
 
 ### Operator exposes health and performance metrics about the Operand
 
 - Application must add /metrics to the path
-- Add servicemetrics to the same namespace and the operand
 
-
-### Prometheus to store the metrics, and Grafana's dashboard to see the metrics
-
+---
 
 ### Alert
 
@@ -104,14 +140,23 @@ spec:
       labels:
         severity: critical
 ```
+---
 
 ### Emit custom events
 
 ```
-bestie_metrics.ApplicationUpgradeFailure.Set(rc)
+if string(pod.Status.Phase) == "Pending" {
+    if string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ErrImagePull" ||
+        string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ImagePullBackOff" {
+        //do something here with event
+        return 1
+    }
+}
+return 0
 
 ```
 <aside class="notes">
 When you introduce a change that breaks production, you should have a plan to roll back that change.
 
 </aside>
+---

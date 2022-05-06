@@ -6,11 +6,12 @@ metadata:
     capabilities: Full Lifecycle
     categories: Application Runtime
     certified: "false"
-    containerImages: quay.io/opdev/l5-operator@sha256:90f1308a486bd41d87fce2f85133941da23893ef8e1b4471684c7666450b4449
+    containerImage: quay.io/opdev/l5-operator:v0.0.2
     description: L5 Operator is a demo operator that aims to demonstrate level 5 capabilities
       for web applications.
     operators.operatorframework.io/builder: operator-sdk-v1.16.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
+    relatedImages: quay.io/opdev/bestie@sha256:0e99ada2b1de19043845dd9076789584aeddc2646402e5f0987dd00424be1ee7
     repository: https://github.com/opdev/l5-operator-demo
     support: Best Effort
   name: l5-operator.v0.0.0

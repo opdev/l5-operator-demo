@@ -95,19 +95,19 @@ An editable version of this diagram is on google drive via [draw.io](https://dri
 
 ![Deployment Diagram](docs/bestie_k8s.drawio.svg)
 
-### How each capability is implemented
+## Capability description
 
-## Level 1 Basic Install
+### Level 1 Basic Install
 The L5 operator is able to take advantage of the Operator Lifecycle Manager and is able to deployed with one click. Once deployed it is able to set up its operator upon creation of a custom resource.
 
-## Level 2 Seamless Upgrades
+### Level 2 Seamless Upgrades
 Its possible to rollout both operator and operand updates seamless with some caveats.
 
-## Level 3 Full Lifecycle
+### Level 3 Full Lifecycle
 Backup and restore functionality is provided via the postgres operator which we consume in order to get almost a database-as-a-service like storage layer for our app.
 
-## Level 4 Deep Insights
+### Level 4 Deep Insights
 The operator as well as operand expose metrics. These are aggregated using prometheus and visualized using grafana. In addition an example alert is also implemented.
 
-## Level 5 Autopilot
+### Level 5 Autopilot
 The operator is able to autoscale by automatically provisioning a horizontal pod autoscaler and automatically changes the size of the deployment based on application load.

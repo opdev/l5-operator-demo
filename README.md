@@ -87,7 +87,7 @@ An editable version of this diagram is on google drive via [draw.io](https://dri
 
 ![Deployment Diagram](docs/hld.svg)
 
-## "Traditional" Operand Architecture
+## "Traditional" Architecture
 
 ![Traditional Deployment](docs/bestie.drawio.svg)
 

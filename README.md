@@ -105,10 +105,10 @@ The L5 operator is able to take advantage of the Operator Lifecycle Manager and 
 Its possible to rollout both operator and operand updates seamless with some caveats.
 
 ### Level 3: Full Lifecycle
-Backup and restore functionality is provided via the postgres operator which we consume in order to get almost a database-as-a-service like storage layer for our app.
+Backup and restore functionality is provided via the postgres operator which we consume in order to get a database-as-a-service right within our cluster
 
 ### Level 4: Deep Insights
-The operator as well as operand expose metrics. These are aggregated using prometheus and visualized using grafana. In addition an example alert is also implemented.
+The operator as well as operand expose metrics. These are aggregated using prometheus and visualized using grafana.
 
 ### Level 5: Autopilot
-The operator is able to autoscale by automatically provisioning a horizontal pod autoscaler and automatically changes the size of the deployment based on application load.
+The operator is able to autoscale by automatically provisioning a horizontal pod autoscaler that automatically changes the size of the deployment based on application load.

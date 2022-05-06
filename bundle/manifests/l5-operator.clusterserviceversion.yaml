@@ -19,6 +19,7 @@ metadata:
         }
       ]
     capabilities: Full Lifecycle
+    categories: Application Runtime
     certified: "false"
     containerImages: quay.io/opdev/l5-operator@sha256:90f1308a486bd41d87fce2f85133941da23893ef8e1b4471684c7666450b4449
     description: L5 Operator is a demo operator that aims to demonstrate level 5 capabilities

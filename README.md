@@ -6,12 +6,6 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 
 - Install Crunchy Data Postgres Operator manually from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/), if you are not using OLM to install the L5 Operator
 
-# High Level Deployment Diagram
-
-An editable version of this diagram is on google drive via [draw.io](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)
-
-![Deployment Diagram](docs/hld.svg)
-
 # Operator Installation
 
 ## Steps to follow while running on Vanilla Kubernetes
@@ -87,3 +81,16 @@ make deploy IMG=<some-registry>/<project-name>:tag
 ```
 operator-sdk run bundle <operator-bundle-image>
 ```
+# High Level Diagrams
+
+An editable version of this diagram is on google drive via [draw.io](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)
+
+![Deployment Diagram](docs/hld.svg)
+
+## "Traditional" Operand Architecture
+
+![Traditional Deployment](docs/bestie.drawio.svg)
+
+## What it looks like in Kubernetes
+
+![Deployment Diagram](docs/bestie_k8s.drawio.svg)

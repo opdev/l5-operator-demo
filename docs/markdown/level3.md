@@ -78,8 +78,8 @@ Don't yet have a demo prepared but open to questions and feedback
 ---
 #### The "easy way"
 - Allow for some service disruption
-- Db changes should always be backward compatible
-- Always roll forward never backwards
+- Ensure that database changes are always backward compatible
+- Always roll forward
 
 <aside class="notes">
   Speaker notes:

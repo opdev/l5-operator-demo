@@ -7,9 +7,9 @@
 
 
 <aside class="notes">
-	- resource definition files
+	- Resource definition files
 	<br>
-	Crunchy Postgres Operator
+	- Crunchy Postgres Operator
 </aside>
 
 ---
@@ -57,7 +57,7 @@ spec:
 
 ### Controller & Reconciler
 
-<img src="https://i.imgur.com/G49iwt5.jpg" width="70%" alt="op diagram">
+<img src="https://i.imgur.com/G49iwt5.jpg" width="70%" alt="operator diagram">
 
 <aside class="notes">
 	- Control loop that watches the state of the current cluster and tries to bring it

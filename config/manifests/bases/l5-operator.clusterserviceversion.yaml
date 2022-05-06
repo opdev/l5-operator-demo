@@ -23,7 +23,6 @@ spec:
       kind: Bestie
       name: besties.pets.bestie.com
       version: v1
-  minKubeVersion: 1.16.0
   description: |
     ## Usage
     The L5 operator is meant to demonstrate a minimum viable prototype of all capability levels outilned in the operator framework. The L5 operator is compatible with both Kubernetes and OpenShift clusters. When running on vanilla kubernetes a few prerequisites need to be kept in mind which may not be available out of the box. These include an ingress controller and a prometheus operator for level 4 capability. The L5 operator also depends on the Crunchy Data PostgreSQL operator. On openshift when installing via the Operator Lifecycle Manager, this will automatically be installed when installing the operator via the embdeded operator hub. The Operator Lifecycle Manager is also available for vanilla kubernetes however it may not be installed out of the box. In this case the Crunchy Data PostgreSQL operator must be installed manually. The Crunchy Data PostgreSQL operator can be installed on vanilla kuberentes using the [instructions provided by Crunchy Data](https://access.crunchydata.com/documentation/postgres-operator/4.7.5/installation/postgres-operator/) More documentation and examples can be found on [github](https://github.com/opdev/l5-operator-demo).
@@ -53,6 +52,7 @@ spec:
   - email: partnereng@redhat.com
     name: OpDev Team
   maturity: alpha
+  minKubeVersion: 1.16.0
   provider:
     name: Red Hat Internal
     url: redhat.com

@@ -8,15 +8,6 @@
 </aside>
 
 ---
-#### Good news!
-- Some things in life are free for everything else there is k8s
-
-<aside class="notes">
-  Speaker notes:
-  As has been the theme so far we get a lot of things for free and this carries over to the backup and restore parts of the application lifecycle
-</aside>
-
----
 #### Postgres Operator
 - A Database-as-a-Service but within our cluster
 
@@ -85,7 +76,7 @@ Don't yet have a demo prepared but open to questions and feedback
 </aside>
 
 ---
-#### Service disruptions
+#### Coming back to service disruptions
 - Application and database compatibility
 
 <aside class="notes">

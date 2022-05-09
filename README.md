@@ -10,7 +10,7 @@ The goal is to develop a demo operator with level 5 capabilities to serve as an 
 
 ## Steps to follow while running on Vanilla Kubernetes
 
-- The L5 Operator requires ingress controller to be installed if running on Vanilla kubernetes
+- The L5 Operator requires an ingress controller to be installed if running on vanilla kubernetes if not already present
 - Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
 - Also make sure to install Crunchy Data Postgres Operator from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/) if installing without using the operator lifecycle manager
 

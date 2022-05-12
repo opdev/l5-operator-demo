@@ -24,6 +24,11 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/opdev/l5-operator-demo/internal/util"
+
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -64,17 +69,23 @@ func (r *DeploymentImageReconciler) Reconcile(ctx context.Context, bestie *petsv
 	}
 	log := r.Log.WithValues("deployment_image", logInfo)
 
-	if !r.isBestieRunning(ctx, bestie) {
+	if !r.isBestieRunning(ctx, *bestie) {
 		// If bestie-app isn't running yet, requeue the reconcile
 		// to run again after a delay.
 		delay := time.Second * time.Duration(15)
-		log.Info(fmt.Sprintf("bestie-app is instantiating, waiting for %s", delay))
+		log.Info(fmt.Sprintf("bestie-app is instantiating, requeue reconcile for %s seconds", delay))
 		return ctrl.Result{RequeueAfter: delay}, nil
+	}
+
+	err := r.updateDeploymentReadyCondition(ctx, *bestie)
+	if err != nil {
+		log.Error(err, "Unable to update DeploymentReady status condition")
+		return ctrl.Result{}, err
 	}
 
 	// Level 2 : update Operand.
 	r.Log.Info("reconcile bestie version")
-	err := r.upgradeOperand(ctx, bestie)
+	err = r.upgradeOperand(ctx, *bestie)
 	if err != nil {
 		log.Error(err, "Failed to upgrade the operand")
 		return ctrl.Result{Requeue: true}, err
@@ -82,7 +93,12 @@ func (r *DeploymentImageReconciler) Reconcile(ctx context.Context, bestie *petsv
 
 	// Level 2 : update appVersion status.
 	log.Info("update bestie version status")
-	appVersion := r.getDeployedBestieVersion(ctx, bestie)
+	err = util.RefreshCustomResource(ctx, r.client, bestie)
+	if err != nil {
+		log.Error(err, "Unable to refresh bestie custom resource")
+		return ctrl.Result{}, err
+	}
+	appVersion := r.getDeployedBestieVersion(ctx, *bestie)
 	if !reflect.DeepEqual(appVersion, bestie.Status.AppVersion) {
 		bestie.Status.AppVersion = appVersion
 		log.Info("update app version status")
@@ -95,7 +111,12 @@ func (r *DeploymentImageReconciler) Reconcile(ctx context.Context, bestie *petsv
 
 	// Level 2 : update application status.
 	log.Info("update bestie pods status")
-	_, err = r.updateApplicationStatus(ctx, bestie)
+	err = util.RefreshCustomResource(ctx, r.client, bestie)
+	if err != nil {
+		log.Error(err, "Unable to refresh bestie custom resource")
+		return ctrl.Result{}, err
+	}
+	_, err = r.updateApplicationStatus(ctx, *bestie)
 	if err != nil {
 		log.Error(err, "Failed to update bestie application status")
 		return ctrl.Result{Requeue: true}, err
@@ -104,7 +125,7 @@ func (r *DeploymentImageReconciler) Reconcile(ctx context.Context, bestie *petsv
 	return ctrl.Result{}, nil
 }
 
-func (r *DeploymentImageReconciler) upgradeOperand(ctx context.Context, bestie *petsv1.Bestie) error {
+func (r *DeploymentImageReconciler) upgradeOperand(ctx context.Context, bestie petsv1.Bestie) error {
 	dp := &appsv1.Deployment{}
 
 	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
@@ -140,7 +161,7 @@ func (r *DeploymentImageReconciler) upgradeOperand(ctx context.Context, bestie *
 }
 
 // Returns true if readyReplicas=1.
-func (r *DeploymentImageReconciler) isBestieRunning(ctx context.Context, bestie *petsv1.Bestie) bool {
+func (r *DeploymentImageReconciler) isBestieRunning(ctx context.Context, bestie petsv1.Bestie) bool {
 	dp := &appsv1.Deployment{}
 	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
@@ -156,7 +177,7 @@ func (r *DeploymentImageReconciler) isBestieRunning(ctx context.Context, bestie 
 }
 
 // getBestieContainerImage will return the container image for the Bestie App Image.
-func getBestieContainerImage(bestie *petsv1.Bestie) string {
+func getBestieContainerImage(bestie petsv1.Bestie) string {
 	img := BestieDefaultImage
 	if len(bestie.Spec.Image) > 0 {
 		img = bestie.Spec.Image
@@ -168,7 +189,7 @@ func getBestieContainerImage(bestie *petsv1.Bestie) string {
 	return CombineImageTag(img, tag)
 }
 
-func (r *DeploymentImageReconciler) getDeployedBestieVersion(ctx context.Context, bestie *petsv1.Bestie) string {
+func (r *DeploymentImageReconciler) getDeployedBestieVersion(ctx context.Context, bestie petsv1.Bestie) string {
 	dp := &appsv1.Deployment{}
 	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
 	if err != nil {
@@ -181,7 +202,12 @@ func (r *DeploymentImageReconciler) getDeployedBestieVersion(ctx context.Context
 }
 
 // getPodNames returns the pod names of the array of pods passed in.
-func (r *DeploymentImageReconciler) updateApplicationStatus(ctx context.Context, bestie *petsv1.Bestie) (ctrl.Result, error) {
+func (r *DeploymentImageReconciler) updateApplicationStatus(ctx context.Context, bestie petsv1.Bestie) (ctrl.Result, error) {
+	err := util.RefreshCustomResource(ctx, r.client, &bestie)
+	if err != nil {
+		r.Log.Error(err, "Unable to refresh bestie custom resource")
+		return ctrl.Result{}, err
+	}
 	podList := &corev1.PodList{}
 
 	listOpts := []client.ListOption{
@@ -219,7 +245,7 @@ func (r *DeploymentImageReconciler) updateApplicationStatus(ctx context.Context,
 	if bestieStatusDifferent {
 		r.Log.Info("Pod Status different, update bestie application status")
 		bestie.Status.PodStatus = appStatus
-		err := r.client.Status().Update(ctx, bestie)
+		err := r.client.Status().Update(ctx, &bestie)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -266,4 +292,21 @@ func CombineImageTag(img string, tag string) string {
 		return fmt.Sprintf("%s:%s", img, tag) // Tag
 	}
 	return img // No tag, use default
+}
+
+func (r *DeploymentImageReconciler) updateDeploymentReadyCondition(ctx context.Context, bestie petsv1.Bestie) error {
+	err := util.RefreshCustomResource(ctx, r.client, &bestie)
+	if err != nil {
+		return err
+	}
+	deploymentReadyCondition := NewDeploymentCreatedCondition()
+	deploymentReadyCondition.Status = metav1.ConditionTrue
+	deploymentReadyCondition.Reason = "HasMinReadyReplicas"
+	deploymentReadyCondition.Message = "Deployment has min ready replicas"
+	meta.SetStatusCondition(&bestie.Status.Conditions, deploymentReadyCondition)
+	err = r.client.Status().Update(ctx, &bestie)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -42,6 +42,17 @@ type BestieSpec struct {
 	MaxReplicas *int32 `json:"maxReplicas,omitempty"`
 }
 
+// Status Condition Types.
+const (
+	DatabaseReady   string = "DatabaseReady"
+	DatabaseSeeded  string = "DatabaseSeeded"
+	DeploymentReady string = "DeploymentReady"
+	ServiceCreated  string = "ServiceCreated"
+	HPACreated      string = "HPACreated"
+	RouteCreated    string = "RouteCreated"
+	IngressCreated  string = "IngressCreated"
+)
+
 // BestieStatus defines the observed state of Bestie.
 type BestieStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster.
@@ -52,6 +63,13 @@ type BestieStatus struct {
 
 	// Current version deployed
 	AppVersion string `json:"appversion,omitempty"`
+
+	// The operators status conditions
+	// +optional
+	// +listType=map
+	// +listMapKey=type
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors={"urn:alm:descriptor:io.kubernetes.conditions"}
+	Conditions []metav1.Condition `json:"conditions"`
 }
 
 //+kubebuilder:object:root=true

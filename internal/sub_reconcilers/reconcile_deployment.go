@@ -22,6 +22,11 @@ import (
 	"os"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/opdev/l5-operator-demo/internal/util"
+
 	yamlutil "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -58,7 +63,7 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bes
 	}
 	log := r.Log.WithValues("deployment", logInfo)
 
-	// TODO wait for db to be seeded
+	// wait for db to be seeded
 	job := &batchv1.Job{}
 	err := r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-job", Namespace: bestie.Namespace}, job)
 	if err != nil && errors.IsNotFound(err) {
@@ -67,31 +72,29 @@ func (r *DeploymentReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bes
 		log.Info(fmt.Sprintf("will retry after waiting for %s", delay))
 		return ctrl.Result{RequeueAfter: delay}, nil
 	}
-
-	jobComplete := false
-	if job.Status.Succeeded >= *job.Spec.Completions {
-		jobComplete = true
-	}
-
-	if !jobComplete {
+	if !(job.Status.Succeeded >= *job.Spec.Completions) {
 		delay := time.Second * time.Duration(15)
 		log.Info(fmt.Sprintf("database seeding job has not yet completed, waiting %s seconds", delay))
 		return ctrl.Result{RequeueAfter: delay}, nil
 	}
-
-	// reconcile Deployment.
+	_, err = r.updateDatabaseSeededCondition(ctx, *bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	// reconcile deployment.
 	log.Info("reconcile deployment if it does not exist")
 	dp := &appsv1.Deployment{}
 	err = r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-app", Namespace: bestie.Namespace}, dp)
-	if err != nil && errors.IsNotFound(err) && jobComplete {
+	if err != nil && errors.IsNotFound(err) && (job.Status.Succeeded >= *job.Spec.Completions) {
 		log.Info("Creating a new app for bestie")
 		fileName := "config/resources/bestie-deploy.yaml"
 		err := r.applyDeploymentFromFile(ctx, bestie, *dp.DeepCopy(), fileName)
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("unable to apply deployment manifest - %w", err)
 		}
+		return r.createDeploymentCondition(ctx, *bestie)
 	}
-	return ctrl.Result{}, err
+	return ctrl.Result{}, nil
 }
 
 func (r *DeploymentReconciler) applyDeploymentFromFile(ctx context.Context, bestie *petsv1.Bestie, obj appsv1.Deployment, fileName string) error {
@@ -126,4 +129,34 @@ func (r *DeploymentReconciler) applyDeploymentFromFile(ctx context.Context, best
 		return err
 	}
 	return nil
+}
+
+func (r *DeploymentReconciler) createDeploymentCondition(ctx context.Context, bestie petsv1.Bestie) (ctrl.Result, error) {
+	err := util.RefreshCustomResource(ctx, r.client, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	meta.SetStatusCondition(&bestie.Status.Conditions, NewDeploymentCreatedCondition())
+	err = r.client.Status().Update(ctx, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
+}
+
+func (r *DeploymentReconciler) updateDatabaseSeededCondition(ctx context.Context, bestie petsv1.Bestie) (ctrl.Result, error) {
+	err := util.RefreshCustomResource(ctx, r.client, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	databaseSeededCondition := NewDatabaseSeededCondition()
+	databaseSeededCondition.Status = metav1.ConditionTrue
+	databaseSeededCondition.Reason = "SeedJobCompleted"
+	databaseSeededCondition.Message = "Database seed job completed successfully"
+	meta.SetStatusCondition(&bestie.Status.Conditions, databaseSeededCondition)
+	err = r.client.Status().Update(ctx, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
 }

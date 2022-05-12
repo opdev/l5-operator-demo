@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"os"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	routev1 "github.com/openshift/api/route/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -93,4 +95,17 @@ func verifyOpenShiftCluster(group string, version string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func RefreshCustomResource(ctx context.Context, client client.Client, bestie *petsv1.Bestie) error {
+	Log := ctrllog.FromContext(ctx)
+	err := client.Get(ctx, types.NamespacedName{
+		Namespace: bestie.Namespace,
+		Name:      bestie.Name,
+	}, bestie)
+	if err != nil {
+		Log.Error(err, "Unable to refresh bestie resource")
+		return err
+	}
+	return nil
 }

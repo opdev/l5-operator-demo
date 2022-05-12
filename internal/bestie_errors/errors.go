@@ -19,3 +19,4 @@ import "errors"
 
 var InvalidMaxReplicasValue = errors.New("MaxReplicas should be greater than deployment size to avoid contention between the deployment and horizontal pod autoscaling controllers")
 var InvalidDeploymentSizeValue = errors.New("Deployment size should be less than MaxReplicas to avoid contention between the deployment and horizontal pod autoscaling controllers")
+var ErrWhenRefreshingBestieResource = errors.New("Error when retrieving most recent copy of the bestie custom resource")

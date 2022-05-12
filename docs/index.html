@@ -34,8 +34,17 @@
 					<aside class="notes">
 						- The term operator refers to a pattern in kubernetes that uses custom resources and controllers to manage applications in the cluster
 						- Operators can be thought of kubernetes native extensions that extend the functionality of kubernetes.
-						- The operator framework defines 5 different capabilities that operators can have.
+					</aside>
+				</section>
+
+				<section>
+					<img src="https://i.imgur.com/G49iwt5.jpg" width="70%" alt="operator diagram">
+					<aside class="notes">
+						- Control loop that watches the state of the current cluster and tries to bring it closer to the desired state that's declared in the resource definition files.
+						- A controller can be though of as a person who is doing things by looking up sticky note/template/image/recipe that we provide(cr)
+						- EX: something happens(event) we install the operator (event) the controller looks up the sticky note (custom resource) and does a something (configures our app)
 						<br>
+						- The operator framework defines 5 different capabilities that operators can have.
 						- Following the Operator Framework, the L5 operator was created to demonstrate the capabilities of an operator
 						from Level 1:basic installation to Level 5:autopilot.
 						<br>
@@ -45,16 +54,7 @@
 						- The Operator Framework defines that very will in their capabilities model
 					</aside>
 				</section>
-				
-				<section>
-					<img src="https://i.imgur.com/G49iwt5.jpg" width="70%" alt="operator diagram">
-					<aside class="notes">
-						- Control loop that watches the state of the current cluster and tries to bring it closer to the desired state that's declared in the resource definition files.
-						- A controller can be though of as a person who is doing things by looking up sticky note/template/image/recipe that we provide(cr)
-						- EX: something happens(event) we install the operator (event) the controller looks up the sticky note (custom resource) and does a something (configures our app)
-					</aside>
-				</section>
-				
+
 
 				<section>
 					<h2>Operator Framework</h2>

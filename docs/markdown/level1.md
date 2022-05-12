@@ -16,7 +16,7 @@
 
 ### Operator SDK
 - controller-runtime library
-- integreation with Operator Lifecycle Manager(OLM)
+- integration with Operator Lifecycle Manager(OLM)
 - metrics with prometheus operator
 
 <aside class="notes">
@@ -49,7 +49,7 @@ spec:
 
 <aside class="notes">
 	- an object that allows you to extend Kubernetes capabilities by adding any kind of API object useful for your application
-	- CR we create signals to the controller to create the deploy, service job, needed to help make application run
+	- the CR is created an event is triggers the reconciler functions in the controller to create the resources (deploy, service, job) needed to help make application run
 	- This is the sticky note that the controller watches and tries to copy whenever an event occurs
 </aside>
 
@@ -72,4 +72,42 @@ spec:
 	<br>
 	- Next Soundharya will talk more about the capabilities of a level 2 operator and how
 	we brought the l5 operator from level 1: basic installation to level 2: seamless upgrades
+</aside>
+
+
+---
+
+### Reconcilers & sub-reconcilers
+
+```
+subReconcilerList := []srv1.Reconciler{
+	srv1.NewPostgresClusterCRReconciler(r.Client, log, r.Scheme),
+	srv1.NewDatabaseSeedJobReconciler(r.Client, log, r.Scheme),
+	srv1.NewDeploymentReconciler(r.Client, log, r.Scheme),
+	srv1.NewDeploymentSizeReconciler(r.Client, log, r.Scheme),
+	srv1.NewDeploymentImageReconciler(r.Client, log, r.Scheme),
+	srv1.NewServiceReconciler(r.Client, log, r.Scheme),
+	srv1.NewHPAReconciler(r.Client, log, r.Scheme),
+	srv1.NewRouteReconciler(r.Client, log, r.Scheme),
+}
+
+requeueResult := false
+requeueDelay := time.Duration(0)
+for _, subReconciler := range subReconcilerList {
+	subResult, err := subReconciler.Reconcile(ctx, bestie.DeepCopy())
+	if err != nil {
+		log.Error(err, "re-queuing with error")
+		return subResult, err
+	}
+	requeueResult = requeueResult || subResult.Requeue
+	if requeueDelay < subResult.RequeueAfter {
+		requeueDelay = subResult.RequeueAfter
+	}
+}
+
+```
+
+<aside class="notes">
+	- Reconciliation is level-based, meaning action isn't driven off changes in individual Events, but instead is driven by actual cluster state read from the apiserver or a local cache. For example if responding to a Pod Delete Event, the Request won't contain that a Pod was deleted, instead the reconcile function observes this when reading the cluster state and seeing the Pod as missing.
+	<br>
 </aside>

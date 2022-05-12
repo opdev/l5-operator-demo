@@ -41,9 +41,23 @@ Don't yet have a demo prepared but open to questions and feedback
 </aside>
 
 ---
-#### What about restores
+#### What about restores ?
 
-- In place point in time recovery
+---
+#### Service disruptions
+- Application and database compatibility
+
+<aside class="notes">
+  Speaker notes:
+  But backups are only part of the picture what about restores ? Restores bring about a few more complications. If we restore a database backup the app might not work correctly as the database version and the app version are not compatible for all pods. 
+</aside>
+
+---
+#### The "easy way"
+- Allow for some service disruption
+
+---
+#### In place point in time recovery
 ```
 spec:
   backups:
@@ -67,19 +81,8 @@ Don't yet have a demo prepared but open to questions and feedback
 </aside>
 
 ---
-#### Coming back to service disruptions
-- Application and database compatibility
-
-<aside class="notes">
-  Speaker notes:
-  But backups are only part of the picture what about restores ? Restores bring about a few more complications. If we restore a database backup the app might not work correctly as the database version and the app version are not compatible for all pods. 
-</aside>
-
----
-#### The "easy way"
-- Allow for some service disruption
-- Ensure that database changes are always backward compatible
-- Always roll forward
+#### Ensure Backward compaitibility
+- Effectively always roll forward
 
 <aside class="notes">
   Speaker notes:
@@ -99,13 +102,13 @@ Don't yet have a demo prepared but open to questions and feedback
 </aside>
 
 ---
-#### Cloning the db
-
+#### Cloning the db (from bestie1)
+- Set the db as the datasource
 ```
 spec:
   dataSource:
     postgresCluster:
-      clusterName: bestie-pgc
+      clusterName: bestie1-pgc
       repoName: repo1
 ```
 
@@ -115,4 +118,31 @@ we can create a new db with the old db as the source
 </aside>
 
 ---
-#### Whats next ?
+#### Cloning the application (create bestie2)
+- Create a new bestie custom resource
+```
+apiVersion: pets.bestie.com/v1
+kind: Bestie
+metadata:
+  name: bestie2
+spec:
+  size: 3
+  image: quay.io/opdev/bestie
+  maxReplicas: 10
+  version: "1.4"
+```
+
+<aside class="notes">
+Speaker notes:
+we can create a new db with the old db as the source
+</aside>
+
+---
+#### We can have all this orchrestrated by the operator!
+
+<aside class="notes">
+Speaker notes:
+There are other tools that can do this but the advantage is that you can customize, package and distribute this with your app through operator hub
+</aside>
+
+---

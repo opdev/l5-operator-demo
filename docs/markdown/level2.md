@@ -7,6 +7,9 @@
 </aside>
 
 ---
+### Free Lunch
+![Free Lunch](../images/freelunch.jpeg)
+---
 #### Minor versions
 - As easy as updating the image in our deployment
 

@@ -25,7 +25,7 @@ expose Operand alerts
 
 ---
 
-<img src="images/prometheus-grafana.png" width="45%" alt="Grafana Dashboard">
+<img src="../images/prometheus-grafana.png" width="45%" alt="Grafana Dashboard">
 
 <aside class="notes">
 
@@ -219,11 +219,11 @@ Use metrics to create Alert rules to produce alerts
 </aside>
 ---
 
-<img src="images/zero-alert.png" width="100%" alt="no alerts">
+<img src="../images/zero-alert.png" width="100%" alt="no alerts">
 
 ---
 
-<img src="images/alert-critical.png" width="100%" alt="alert">
+<img src="../images/alert-critical.png" width="100%" alt="alert">
 
 <aside class="notes">
 Alert tells us when things goes wrong and get operator to take care of it.
@@ -260,7 +260,7 @@ http://bestie-route-bestie.apps.demo.opdev.io/metrics
 
 2. Create service monitor in the operand namespace.
 
-<img src="images/servicemonitor.png" width="45%" alt="servicemonitor flowchart">
+<img src="../images/servicemonitor.png" width="45%" alt="servicemonitor flowchart">
 
 ---
 

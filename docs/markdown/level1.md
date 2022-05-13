@@ -24,7 +24,7 @@
 
 <div class="r-stack">
 
-  <img class="fragment fade-out" data-fragment-index="0" src="images/bestie_black.png" >
+  <img class="fragment fade-out" data-fragment-index="0" src="../images/bestie_black.png" >
   <span class="fragment current-visible" data-fragment-index="0">
 	<h3>Requirements</h3>
 	<ul>
@@ -35,7 +35,7 @@
 		<li>Job</li>
 	</ul>
   </span>
-  <img class="fragment" src="images/bestie_k8s_black.png" >
+  <img class="fragment" src="../images/bestie_k8s_black.png" >
 </div>
 
 <aside class="notes">
@@ -69,7 +69,7 @@ spec:
 
 ### Controller & Reconciler
 
-<img src="images/operator.jpg" alt="operator diagram" width="70%">
+<img src="../images/operator.jpg" alt="operator diagram" width="70%">
 
 <aside class="notes">
 	- Control loop that watches the state of the current cluster and tries to bring it
@@ -123,7 +123,7 @@ subReconcilerList := []srv1.Reconciler{
 
 ### Overview
 
-<img src="images/operator.jpg" alt="operator diagram" width="70%">
+<img src="../images/operator.jpg" alt="operator diagram" width="70%">
 
 <aside class="notes">
 	- Summary: Now the l5 operator has level 1 capabilites it has the controller and the CR, so it can automatically provision and configure all the resource we need for the flask application upon installation

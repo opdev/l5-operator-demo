@@ -26,7 +26,8 @@ The operator is published as a community operator on the openshift operator hub.
 ## Different ways to run the Operator using the Operator SDK
 
 ### Prerequisites
--  When not using OLM to install the L5 Operator, the Crunchy Data Postgres Operator needs to be installed either from the operator hub when using Openshift or [manually](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/)
+- When not using OLM to install the L5 Operator, the Crunchy Data Postgres Operator needs to be installed either from the operator hub when using Openshift or [manually](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/)
+- The L5 Operator requires an ingress controller to be installed if running on vanilla kubernetes if not already present. Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
 
 ### 1. Run locally outside the cluster
 ```
@@ -88,10 +89,6 @@ make deploy IMG=<some-registry>/<project-name>:tag
 ```
 operator-sdk run bundle <operator-bundle-image>
 ```
-
-## Steps to follow while running on Vanilla Kubernetes
-- The L5 Operator requires an ingress controller to be installed if running on vanilla kubernetes if not already present. Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
-- The operator consumes the postgres operator in order to provision a database. This can be installed from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/) if installing without using the operator lifecycle manager
 
 # High Level Diagrams
 

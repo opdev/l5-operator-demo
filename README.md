@@ -20,89 +20,78 @@ The operator as well as operand expose metrics. These are aggregated using prome
 ### Level 5: Autopilot
 The operator is able to autoscale by automatically provisioning a horizontal pod autoscaler that automatically changes the size of the deployment based on application load.
 
-
-# Requirements
-
-- Install Crunchy Data Postgres Operator manually from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/), if you are not using OLM to install the L5 Operator
-
 # Operator Installation
 The operator is published as a community operator on the openshift operator hub.
 
-## Different ways to run the Operator on Openshift
+## Different ways to run the Operator using the Operator SDK
+
+### Prerequisites
+-  When not using OLM to install the L5 Operator, the Crunchy Data Postgres Operator needs to be installed either from the operator hub when using Openshift or [manually](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/)
 
 ### 1. Run locally outside the cluster
-
 ```
 git clone https://github.com/opdev/l5-operator-demo
- ```
+```
 
 ``` 
 cd <project>
- ```
+```
 
 ``` 
 make generate
- ```
+```
 
 ``` 
 make manifests
- ```
+```
 
 ``` 
 make install
- ```
+```
 
 ``` 
 make run
- ```
+```
 
 ``` 
 oc apply -f config/samples/pets_v1_bestie.yaml
- ```
+```
 
 ### 2. Run as a Deployment inside the cluster
-
 ``` 
 git clone https://github.com/opdev/l5-operator-demo
- ```
+```
 
 ``` 
 cd <project>
- ```
+```
 
 ``` 
 make generate
- ```
+```
 
 ``` 
 make manifests
- ```
+```
 
 - Build and push your image to the location specified by IMG:
-
 ``` 
 make docker-build docker-push IMG=<some-registry>/<project-name>:tag 
 ```
 
 - Deploy the controller to the cluster with image specified by IMG:
-
 ``` 
 make deploy IMG=<some-registry>/<project-name>:tag
- ```
+```
 
 ### 3. Deploy the Operator with OLM
-
 ```
 operator-sdk run bundle <operator-bundle-image>
 ```
 
 ## Steps to follow while running on Vanilla Kubernetes
-
-- The L5 Operator requires an ingress controller to be installed if running on vanilla kubernetes if not already present
-- Ingress Condtroller
-    Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
-- Postgres Operator
-    Also make sure to install Crunchy Data Postgres Operator from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/) if installing without using the operator lifecycle manager
+- The L5 Operator requires an ingress controller to be installed if running on vanilla kubernetes if not already present. Steps for installing ingress controller for different clusters can be followed from [here](https://kubernetes.github.io/ingress-nginx/deploy/)
+- The operator consumes the postgres operator in order to provision a database. This can be installed from [here](https://access.crunchydata.com/documentation/postgres-operator/v5/quickstart/) if installing without using the operator lifecycle manager
 
 # High Level Diagrams
 

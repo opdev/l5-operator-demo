@@ -8,7 +8,7 @@
 
 ---
 ####
-![Free Lunch](../images/freelunch.jpeg)
+![Free Lunch](images/freelunch.jpeg)
 
 ---
 #### Minor versions

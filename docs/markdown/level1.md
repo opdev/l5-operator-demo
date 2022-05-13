@@ -26,7 +26,7 @@
 
   <img class="fragment fade-out" data-fragment-index="0" src="../images/bestie_black.png" >
   <span class="fragment current-visible" data-fragment-index="0">
-	<h3>Requirements</h3>
+	<h3>Desired State</h3>
 	<ul>
 		<li>Deployment</li>
 		<li>Service</li>

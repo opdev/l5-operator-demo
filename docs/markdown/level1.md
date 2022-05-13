@@ -5,9 +5,8 @@
 ---
 
 ### Operator SDK
-- controller-runtime library
-- integration with Operator Lifecycle Manager(OLM)
-- metrics with prometheus operator
+- leverage the kubernetes controller runtime
+- integrate with Operator Lifecycle Manager(OLM)
 
 <aside class="notes">
 	- we used op sdk to orchestrate our op came with lots out of the box like

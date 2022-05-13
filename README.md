@@ -94,12 +94,12 @@ operator-sdk run bundle <operator-bundle-image>
 
 An editable version of this diagram is on google drive [(internal)](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)
 
-![Deployment Diagram](docs/hld.svg)
+![Deployment Diagram](docs/images/hld.svg)
 
 ## "Traditional" Architecture
 
-![Traditional Deployment](docs/bestie.drawio.svg)
+![Traditional Deployment](docs/images/bestie.drawio.svg)
 
 ## What it looks like in Kubernetes
 
-![Deployment Diagram](docs/bestie_k8s.drawio.svg)
+![Deployment Diagram](docs/images/bestie_k8s.drawio.svg)

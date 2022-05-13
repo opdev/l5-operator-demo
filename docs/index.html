@@ -18,12 +18,12 @@
 			<div class="slides">
 
 				<section>
-					<img src="https://i.imgur.com/vKFMlIj.png" alt="l5 logo" width="50%" style="text-align: none;" />
+					<img src="images/l5logo.png" alt="l5 logo" width="50%" style="text-align: none;" />
 				</section>
 
 
 				<section>
-					<h2>From Zero to <span style="color:red">Auto Pilot</span>:</h2>
+					<h2>From Zero to <span style="color:red">Auto Pilot</span></h2>
 					<p>Exploring Kubernetes Operator Capability Levels</p>
 				</section>
 
@@ -32,20 +32,21 @@
 					<h3>What is an operator <a href="https://bestie-rescue.herokuapp.com/">?</a></h3>
 					<p class="fragment fade-up">A controller and <span style="color:red">custom resource</span></p>
 					<aside class="notes">
-						- The term operator refers to a pattern in kubernetes that uses custom resources and controllers to manage applications in the cluster
-						- Operators can be thought of kubernetes native extensions that extend the functionality of kubernetes.
+						- The term operator refers to a pattern in kubernetes that uses custom resources and controllers to manage applications in a cluster
+						<br>
+						- Operators can be thought of as kubernetes native extensions that extend the functionality of kubernetes.
 					</aside>
 				</section>
 
 				<section>
-					<img src="https://i.imgur.com/G49iwt5.jpg" width="70%" alt="operator diagram">
+					<img src="images/operator.jpg" width="70%" alt="operator diagram">
 					<aside class="notes">
 						- Control loop that watches the state of the current cluster and tries to bring it closer to the desired state that's declared in the resource definition files.
 						- A controller can be though of as a person who is doing things by looking up sticky note/template/image/recipe that we provide(cr)
 						- EX: something happens(event) we install the operator (event) the controller looks up the sticky note (custom resource) and does a something (configures our app)
 						<br>
 						- The operator framework defines 5 different capabilities that operators can have.
-						- Following the Operator Framework, the L5 operator was created to demonstrate the capabilities of an operator
+						- The L5 operator was created to demonstrate the capabilities of an operator
 						from Level 1:basic installation to Level 5:autopilot.
 						<br>
 						- With an autopilot operator being our end goal for our operator
@@ -58,7 +59,7 @@
 
 				<section>
 					<h2>Operator Framework</h2>
-					<img src="https://i.imgur.com/5I5Eet4.jpg" alt="capability levels">
+					<img src="images/level5.jpeg" alt="capability levels">
 					<aside class="notes">
 						<p>
 							- Operator Framework is an open source toolkit used to manage Operators,
@@ -89,7 +90,7 @@
 				<section>
 					<section>
 						Level 1: Basic Installation
-						<img src="https://i.imgur.com/ECOGdmD.jpg" alt="level 1 capability" />
+						<img src="images/level1.jpeg" alt="level 1 capability" />
 					</section>
 					<section data-markdown="markdown/level1.md"></section>
 					<aside class="notes">
@@ -103,7 +104,7 @@
 				<section>
 					<section>
 						Level 2: Seamless Upgrades
-						<img src="https://i.imgur.com/SvYt64T.jpg" alt="level 2 capability" />
+						<img src="images/level2.jpeg" alt="level 2 capability" />
 					</section>
 					<section data-markdown="markdown/level2.md"></section>
 				</section>
@@ -114,7 +115,7 @@
 				<section>
 					<section>
 						Level 3: Full Lifecycle
-						<img src="https://i.imgur.com/goJv7sM.jpg" alt="level 2 capability" />
+						<img src="images/level3.jpeg" alt="level 2 capability" />
 					</section>
 					<section data-markdown="markdown/level3.md"></section>
 				</section>
@@ -125,7 +126,7 @@
 				<section>
 					<section>
 						Level 4: Deep Insights
-						<img src="https://i.imgur.com/ON6nOcI.jpg" alt="level 2 capability" />
+						<img src="images/level4.jpeg" alt="level 2 capability" />
 					</section>
 					<section data-markdown="markdown/level4.md"></section>
 				</section>
@@ -136,7 +137,7 @@
 				<section>
 					<section>
 						Level 5: Auto Pilot
-						<img src="https://i.imgur.com/5I5Eet4.jpg" alt="level 2 capability" />
+						<img src="images/level5.jpeg" alt="level 2 capability" />
 					</section>
 					<section data-markdown="markdown/level5.md"></section>
 				</section>

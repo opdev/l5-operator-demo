@@ -92,7 +92,7 @@ operator-sdk run bundle <operator-bundle-image>
 
 # High Level Diagrams
 
-An editable version of this diagram is on google drive via [draw.io](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)
+An editable version of this diagram is on google drive [(internal)](https://drive.google.com/file/d/1zwZDZyp_OqdqhPicXgfqIDRPZB4IYjwO/view?usp=sharing)
 
 ![Deployment Diagram](docs/hld.svg)
 

@@ -1,6 +1,6 @@
 #### You deserve a good night's sleep
 
-<img src="images/dreamworks.png" width="70%" alt="operator diagram" />
+![Autopilot](images/dreamworks.png)
 
 ---
 
@@ -33,7 +33,7 @@ spec:
 ---
 #### HPA Workflow
 
-<img src="images/HPA-Diagram.jpeg" width="70%" alt="operator diagram" />
+![hpa](images/HPA-Diagram.jpeg)
 
 ---
 #### Load Test Demo

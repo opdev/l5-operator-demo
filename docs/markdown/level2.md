@@ -65,7 +65,7 @@ Seamless but conditions apply*
 ---
 #### 
 What if there are incompatible changes ?
-[Incompatible Changes](images/incompatible_changes.png)
+![Incompatible Changes](images/incompatible_changes.png)
 
 <aside class="notes"> 
   A bit more sophistication is needed requiring level 3 capabilities

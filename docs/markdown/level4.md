@@ -1,94 +1,143 @@
 
-#### Level 4 - Deep Insights
-
-- Monitoring
-
-- Alerting
+Life is full of surprises
+<img src="images/life-issurprise.png" width="85%" alt="Prometheus and Grafana monitors and displace metrics">
 
 <aside class="notes">
 
-This brings us to Level 4 - Deep Insights.
+Thank you Sid.
 
-Includes Monitor and Alert.
+We begin with the theme, Operator is full of surprise for everything else there is prometheus and grafana.
+Here we are, very happy with how far we have come with the Bestie operator. It's capable of seamless upgrades and full lifecycle, but just when we thought this is all the automation we need, something caught our attention. I was asked to upgrade Bestie operator to the bestie app image version 1.4.0. Easy right!.  I edited the cr to change the spec.version to from 1.3.0 to 1.4.0 and I thought nothing of it.
+Seemless upgrade. A few days go by, my manager comes to me and says, Rose, did you do the upgrade like you promised ?
+I was like yeah and then he said, well, it doesn't look like it worked. Hmmm, i said, let me do some digging. I'm sure it's something stupid I did on my part. so I checked the pods status and there it is, in plain sight, the pod stays in the Waiting state because the image cannot be pulled because I had the wrong version number.  So, after I applied the cr with the correct version number the upgrade succeded.
 
-This includes full monitoring for the operand.
+so this brings us to Level 4 - Deep Insights.
 
-- expose a health metrics endpoint?
+The proper definition is metrics, alerts, log processing and workload analysis.
 
-- expose Operand performance metrics
+We decided to implement level 4 cabability so we can catch errors early and alert support if needed. We wanted full monitoring of the operator and the operand. Create metrics and alerts accordingly.
 
-and alerts.
+We use Prometheus to stores both the metrics and the alerting rules, while grafana produces meaninful and customizable dashboards to display metrics and alerts by using prometheus data.
 
-expose Operand alerts
+1. we're going to talk about how we expose metrics.
+
+2. Alert is created when the condition of the alerting rule is meet, so we're going to see an example of the alerting rule
+
+3. I will share with you a Demo that I have prepared about metrics and alerts.
+</aside>
+---
+
+### Expose Operator Metrics
+
+<img src="images/servicemonitor.jpg" width="85%" alt="servicemonitor flowchart">
+
+<aside class="notes">
+Prometheus's servicemonitor allows prometheus to scrape metrics from the service.
+
+so we need to setup a servicemonitor to scrape operand's metrics.
+
+can anyone tell me why we don't need to setup a servicemonitor to scrape operator's metrics?
+
+in what namespace is the servicemonitor in?
+
+the answer is with the service you want to scrape the metrics from.
 
 </aside>
 
 ---
-
-<img src="images/prometheus-grafana.png" width="45%" alt="Grafana Dashboard">
-
-<aside class="notes">
-
-Prometheus is an open-source for monitoring and alerting toolkit
-
-and Grafana dashboard can display the metrics and the alert using the alerting rules.
-
-</aside>
-
----
-
-### Roadmap
-
-1. Demo
-2. Expose operator metrics
-3. Alert
-4. Expose operand metrics
-
----
-
-### Demo
-
-<aside class="notes">
-- Export metrics to Prometheus Operator
-- Showcase metrics in Grafana Operator
-</aside>
-
----
-
-### Expose Custom Metrics
-
-1. Enable Prometheus
-2. Create custom controller class for metrics
-3. Record collectors
-4. Grant permission
-5. Set the labels
----
-
-1. To enable prometheus monitor, uncomment all sections with 'PROMETHEUS' in config/default/kustomization.yaml
 
 ```
-../prometheus
-
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bestie-servicemonitor
+  labels:
+    name: bestie-servicemonitor
+spec:
+  endpoints:
+    - path: /metrics
+      port: metrics
+      scheme: http
+  selector:
+    matchLabels:
+      app: bestie
 ```
 <aside class="notes">
-As you recall, Manna told us that Metrics set up automatically in any generated Go-based Operator for use on clusters where the Prometheus Operator is deployed
+besides implementing the servicemonitor, we also had to
 
-Prerequisite : Operator-sdk
+updated the bestie app to expose application's metrics and create /metrics path to the application's URL.
+
+Spec.endpoint.port is the service's port name and
+Spec.Selector.matchlabels needs to match the service's label
+
 
 </aside>
 
 ---
 
-2. Create a custom controller class to publish additional metrics from the Operator.
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-k8s-role 
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - pods
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+```
+
+<aside class="notes">
+For security, rbac is on by default.
+
+the metrics are protected by rbac rules.
+
+so we need to create a clusterrole 
+</aside>
+---
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-k8s-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-k8s-role
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-k8s
+    namespace: openshift-monitoring
+```
+
+<aside class="notes">
+and a clusterrole binding to bind
+the clusterrole to the prometheus-k8s serviceaccount in the openshift-monitoring namespace
+</aside>
+---
 
 ```
-package bestie_metrics
+kubectl label namespace <operator_namespace> \
+openshift.io/cluster-monitoring="true"
 
-import (
-	"github.com/prometheus/client_golang/prometheus"
-	"sigs.k8s.io/controller-runtime/pkg/metrics"
-)
+```
 
+
+<aside class="notes">
+also create a label for each namespace where the servicemonitor is scraping the metrics.
+
+we created a label in the operator namespace and another lable in the operand's namespace
+
+</aside>
+---
+
+```
 var (
 	ApplicationUpgradeCounter = prometheus.NewCounter(
 		prometheus.CounterOpts{
@@ -103,102 +152,66 @@ var (
 		},
 	)
 )
-
-func init() {
-	// Register custom metrics with the global prometheus registry
-	metrics.Registry.MustRegister(ApplicationUpgradeCounter, ApplicationUpgradeFailure)
-}
 ```
+
 <aside class="notes">
-Declare collectors as global variables
+To publish the metrics, we first need to
+Declare collectors as global variables.
 
-Register them using init() in the controller's package
+Best practice, prefix metric with name of your operator
+Easy search for your metric
 
-Apply using methods provided by the prometheus client
+4 types of metrics, 
+Counter, Gauge, histogram, and summary
+
+A counter is a cumulative metric that represents a single monotonically increasing counter whose value can only increase or be reset to zero on restart. For example, you can use a counter to represent the number of requests served, tasks completed, or errors.
+
+A gauge is a metric that represents a single numerical value that can arbitrarily go up and down.
+
+Gauges are typically used for measured values like temperatures or current memory usage, but also "counts" that can go up and down, like the number of concurrent requests.
+
+bestie_upgrade_counter : type : counter
+bestie_upgrade_failure : type : gauge
+
+
+
+register the collectors with metrics.registry.mustregister before using it.
+
 
 </aside>
 ---
 
-3. Record to these collectors from any part of the reconcile loop in the main controller class, which determines the business logic for the metric.
-
 ```
 bestie_metrics.ApplicationUpgradeCounter.Inc()
-
 ```
 
 ```
-rc := getPodstatusReason(nonTerminatedPodList)
 bestie_metrics.ApplicationUpgradeFailure.Set(rc)
-...
-func getPodstatusReason(pods []corev1.Pod) float64 {
-  
-if string(pod.Status.Phase) == "Pending" {
-    if string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ErrImagePull" ||
-        string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ImagePullBackOff" {
-        return 1
-    }
-}
-return 0
-
 ```
 <aside class="notes">
+
+bestie_upgrade_counter metric is a counter that tracks the number oof successful operand upgrades processed.
+
+To increase the metric by increasing the collector, ApplicationUpgradeCounter.Inc().
+
+bestie_upgrade_failure metric tracks the status of the pod's image status.
+When the pod status keeps cycling and never reach the complete status. We look at the waiting.Reason. If it's ErrImagePull or ImagePullBackoff, then we set
+the ApplicationUpgradeFailure.Set(rc)
+
+and we wanted to create a metric for the upgrade's pod status.
+
+ created bestie_upgrade_failure, a gauge, set a number. 0 is Upgrade not found image issue and 1 is bad image found.
+ 
 
 - Everytime the operand is upgraded, the bestie_upgrade_counter increases by 1.
 
 - Set the state for the operand upgrade
+if string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ErrImagePull" ||
+        string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ImagePullBackOff" {
+        return 1
+    }
 </aside>
 ---
-
-4. Create role and role binding definitions to allow the service monitor of the Operator to be scraped by the Prometheus instance of the OpenShift Container Platform cluster.
-
-<pre><code data-trim data-noescape>
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: prometheus-k8s-role 
-rules:
-  - apiGroups:
-      - ""
-    resources:
-      - endpoints
-      - pods
-      - services
-      - nodes
-      - secrets
-    verbs:
-      - get
-      - list
-      - watch
-</code></pre>
-
----
-
-<pre><code data-trim data-noescape>
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: prometheus-k8s-rolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: prometheus-k8s-role
-subjects:
-  - kind: ServiceAccount
-    name: prometheus-k8s
-    namespace: openshift-monitoring
-
-</code></pre>
----
-
-5. Set the labels for the namespace that you want to scrape, which enables OpenShift cluster monitoring for that namespace:
-
-
-```
-oc label namespace <operator_namespace> openshift.io/cluster-monitoring="true"
-```
----
-
-### alert
 
 ```
 apiVersion: monitoring.coreos.com/v1
@@ -219,72 +232,24 @@ Use metrics to create Alert rules to produce alerts
 </aside>
 ---
 
-<img src="images/zero-alert.png" width="100%" alt="no alerts">
+### Demo
 
 ---
 
-<img src="images/alert-critical.png" width="100%" alt="alert">
+### What's next for metrics and alerts
 
 <aside class="notes">
-Alert tells us when things goes wrong and get operator to take care of it.
+Add metrics -
 
-Best-practice
+Number of visitors to the site
 
-Avoid Over-alerting
-Select use case-specific alerts
-</aside>
+What pages were viewed
 
----
+What operations did the user do - search pet/insert add/updated add/etc. And did it succeed or failed
 
-### Expose Operand metrics
+How many pets were adopted and their details as labels (pet type:dog/cat/etc, time the add was listed/ age of the pet/ gender, has picture:yes/no)
 
-1. Add /metrics to the application
+Integrate with AlertManager. Routes alert to email, slack, etc.
 
-<aside class="notes">
-
-in addition to exposing custom metrics you can also
-expose operand's metrics by adding /metrics path to your application 
-
-http://bestie-route-bestie.apps.demo.opdev.io/metrics
-
-
-- Operator
-  - Operator-sdk create the ServiceMonitor to export metrics
-- Operand
-  - Create in the operand namespace
-
-  ServiceMonitor describes the set of targets to be monitored by Prometheus
-</aside>
-
----
-
-2. Create service monitor in the operand namespace.
-
-<img src="images/servicemonitor.png" width="45%" alt="servicemonitor flowchart">
-
----
-
-```
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: bestie-servicemonitor
-  labels:
-    name: bestie-servicemonitor
-spec:
-  endpoints:
-    - path: /metrics
-      port: metrics
-      scheme: http
-  selector:
-    matchLabels:
-      app: bestie
-```
----
-
-### End
-
-<aside class="notes">
-introduce Yuri
 </aside>
 

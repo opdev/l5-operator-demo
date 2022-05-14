@@ -37,18 +37,20 @@ spec:
 
 ---
 #### Load Test Demo
+
 ```
 kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
 ```
+
 ---
 #### Custom Metrics
 - `apiVersion: autoscaling/v2`
 - Any ideas?
 	1. Requests per second?
-	2. Error rate? 
-
----	
-#### AI in Operator?
-- Learn the Performance Baseline
+	2. HTTP error rate?
+	3. Number of restarts?
 
 ---
+#### AI in Operator?
+
+- Learn the Performance Baseline

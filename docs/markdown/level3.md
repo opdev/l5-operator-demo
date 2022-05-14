@@ -13,15 +13,26 @@
 
 <aside class="notes">
   Speaker note:
-  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
+  So in order to achieve level 3 capability our operator need only be able to backup and restore. Our app stores its state in a postgres database, which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
 </aside>
 
 ---
-#### How do we consume the postgres operator ?
+#### 
+- The postgres operator gives us level 3 for free
 
 <aside class="notes">
   Speaker note:
   However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
+</aside>
+
+---
+#### How do we consume the postgres operator
+- OLM can install it as a dependency
+- The PostgresCluster custom resource
+
+<aside class="notes">
+  Speaker note:
+  When we say we consume the postgres operator we mean two things
 </aside>
 
 ---
@@ -46,7 +57,7 @@ metadata:
 ```
 <aside class="notes">
   Speaker note:
-  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
+  Earlier we noted that the custom resource can be thought of as the interface to operators or kubernetes native applications. An operator can consume another operator by creating / interacting with another operators custom resource which is intern reconciled by that operator.
 </aside>
 
 ---
@@ -57,12 +68,12 @@ metadata:
 
 <aside class="notes">
   Speaker Notes:
-  The postgres operator gives us many things out of the box including WAL which enable point in time recovery, offsite backups to S3 and other storage providers. It also allows us to configure differntial and full backups with specific schedules and retention policies.
+  The postgres operator is an example of one of the more mature operators in the ecosystem (The top %5 as we alluded to earlier). The postgres operator gives us many things out of the box including WAL which enable point in time recovery, offsite backups to S3 and other storage providers. It also allows us to configure differntial and full backups with specific schedules and retention policies.
 </aside>
 
 ---
-#### One Off backup
-
+#### Simple Example
+- One-off backup
 ```
 oc annotate -n postgres-operator postgrescluster bestie-pgc \
   postgres-operator.crunchydata.com/pgbackrest-backup="$(date)"
@@ -70,11 +81,16 @@ oc annotate -n postgres-operator postgrescluster bestie-pgc \
 
 <aside class="notes">
 Speaker notes:
-Don't yet have a demo prepared but open to questions and feedback
+The operator can achieve this step by retrieving the latest version of the PostgresCluster and editing its annotations. The Postgres Operator will be notified of this change via an event since it is watching for changes and will go ahead and run the appropriate commands to complete the backup and once done will remove the annotation.
 </aside>
 
 ---
 #### What about restores ?
+
+<aside class="notes">
+  Speaker notes:
+  But backups are only part of the picture what about restores ? Restores bring about a few more complications..
+</aside>
 
 ---
 #### Service disruptions
@@ -82,7 +98,7 @@ Don't yet have a demo prepared but open to questions and feedback
 
 <aside class="notes">
   Speaker notes:
-  But backups are only part of the picture what about restores ? Restores bring about a few more complications. If we restore a database backup the app might not work correctly as the database version and the app version are not compatible for all pods. 
+  If we restore a database backup the app might not work correctly as the database version and the app version are not compatible for all pods. 
 </aside>
 
 ---
@@ -107,10 +123,10 @@ spec:
 kubectl annotate -n postgres-operator postgrescluster bestie-pgc --overwrite \
   postgres-operator.crunchydata.com/pgbackrest-restore=id1
 ```
-
+  
 <aside class="notes">
-Speaker notes:
-Don't yet have a demo prepared but open to questions and feedback
+  Speaker notes:
+  One way to approach this is to take advantage of the write ahead logs and perform an inplace point in time recovery. This can be achieved in a similar way to the simple backup example we saw earlier.
 </aside>
 
 ---
@@ -119,7 +135,7 @@ Don't yet have a demo prepared but open to questions and feedback
 
 <aside class="notes">
   Speaker notes:
-  So one we need to ensure that the app and the db are compatible and two we need to minimize dataloss and distruption when switching between versions. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible. An even more simple approach is to just account for some service disruption and stop traffic to the application.
+  Another way to avoid disruption is to make small changes and always ensure that the app and the db are compatible. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible.
 </aside>
 
 ---
@@ -135,7 +151,7 @@ Don't yet have a demo prepared but open to questions and feedback
 </aside>
 
 ---
-#### Cloning the db (from bestie1)
+#### Cloning the db (from Bestie version A)
 - Set the old db as the datasource
 ```
 apiVersion: postgres-operator.crunchydata.com/v1beta1
@@ -151,12 +167,12 @@ spec:
 
 <aside class="notes">
 Speaker notes:
-we can create a new db with the old db as the source
+This can be done by modifying the PostgresCluster custom resource
 </aside>
 
 ---
-#### Create bestie2
-- point to the cloned database
+#### Create Bestie version B
+- Point to the cloned database (Version A)
 ```
 apiVersion: pets.bestie.com/v1
 kind: Bestie
@@ -171,7 +187,7 @@ spec:
 
 <aside class="notes">
 Speaker notes:
-The operator refers to the database via the postgrescluster with a defined name so it will automatically use the cloned database. Next we update the existing service to point to this new stack by refering to it by label. So all the building blocks to acheieve this workflow are in place and can be orchrestated by our operator
+The operator refers to the database via the postgrescluster with a defined name so it will automatically use the cloned database. Next we update the existing service to point to this new stack by refering to it by label.
 </aside>
 
 
@@ -182,5 +198,5 @@ The operator refers to the database via the postgrescluster with a defined name 
 
 <aside class="notes">
 Speaker notes:
-There are other tools that can do achieve this workflow but the advantage of using an operator is that you can customize, package and distribute this with your application and provide your users with an app store like experience via operator hub.
+There are other tools that can do achieve this workflow but the advantage of using an operator is that you can customize, package and distribute this with your application and provide your users with an app store like experience via operator hub. So all the building blocks to acheieve this workflow are in place and can be orchrestated by our operator. I don't yet have a working demo for this part but you should be able to try it using the demo l5 operator that has been published to the community operator hub.
 </aside>

@@ -6,41 +6,53 @@ Life is full of surprises
 
 Thank you Sid.
 
-We begin with the theme, Operator is full of surprise for everything else there is prometheus and grafana.
-Here we are, very happy with how far we have come with the Bestie operator. It's capable of seamless upgrades and full lifecycle, but just when we thought this is all the automation we need, something caught our attention. I was asked to upgrade Bestie operator to the bestie app image version 1.4.0. Easy right!.  I edited the cr to change the spec.version to from 1.3.0 to 1.4.0 and I thought nothing of it.
-Seemless upgrade. A few days go by, my manager comes to me and says, Rose, did you do the upgrade like you promised ?
-I was like yeah and then he said, well, it doesn't look like it worked. Hmmm, i said, let me do some digging. I'm sure it's something stupid I did on my part. so I checked the pods status and there it is, in plain sight, the pod stays in the Waiting state because the image cannot be pulled because I had the wrong version number.  So, after I applied the cr with the correct version number the upgrade succeded.
+- Life is full of surprises so for everything else we use prometheus and grafana.
+- Working level 3 operator
+- seamless upgrades
+- full lifecycle
+- something unexpected
+- upgrade bestie application version
+- change manifest and apply
+- a while goes by
+- manager, upgrade didn't work
+- pod status, in the Waiting state because the image cannot be pulled because I had the wrong version
+- after I applied the cr with the correct version number the upgrade succeded.
 
 so this brings us to Level 4 - Deep Insights.
 
-The proper definition is metrics, alerts, log processing and workload analysis.
+- metrics, alerts, log processing and workload analysis.
 
-We decided to implement level 4 cabability so we can catch errors early and alert support if needed. We wanted full monitoring of the operator and the operand. Create metrics and alerts accordingly.
+- implement level 4 cabability
+- detect errors and anomality early and create alert support if needed.
+- full monitoring of the operator and the operand. 
+- Create metrics and alerts accordingly.
 
-We use Prometheus to stores both the metrics and the alerting rules, while grafana produces meaninful and customizable dashboards to display metrics and alerts by using prometheus data.
+- Prometheus to stores both the metrics and the alerting rules
+- grafana produces meaninful and customizable dashboards to display metrics and alerts by using prometheus data.
 
-1. we're going to talk about how we expose metrics.
+1. expose metrics.
 
-2. Alert is created when the condition of the alerting rule is meet, so we're going to see an example of the alerting rule
+2. Create Alert based on metrics 
 
-3. I will share with you a Demo that I have prepared about metrics and alerts.
+3. Demo
+
 </aside>
 ---
 
-### Expose Operator Metrics
+Exposing operator metrics
 
 <img src="images/ServiceMonitor.jpg" width="85%" alt="servicemonitor flowchart">
 
 <aside class="notes">
-Prometheus's servicemonitor allows prometheus to scrape metrics from the service.
 
-so we need to setup a servicemonitor to scrape operand's metrics.
-
-can anyone tell me why we don't need to setup a servicemonitor to scrape operator's metrics?
-
-in what namespace is the servicemonitor in?
-
-the answer is with the service you want to scrape the metrics from.
+- Servicemonitor
+- ServiceMonitor describes the set of targets to be monitored by Prometheus 
+- scrape metrics from the service.
+- operator-service target
+- operand-service target
+- can anyone tell me why we don't need to setup a servicemonitor to scrape operator's metrics?
+- in what namespace apply servermonitor yaml manifest
+- same namespace as the service
 
 </aside>
 
@@ -63,12 +75,13 @@ spec:
       app: bestie
 ```
 <aside class="notes">
-besides implementing the servicemonitor, we also had to
 
-updated the bestie app to expose application's metrics and create /metrics path to the application's URL.
+- servicemonitor to scrape bestie application metrics
 
-Spec.endpoint.port is the service's port name and
-Spec.Selector.matchlabels needs to match the service's label
+- expose application's metrics with /metrics path to the application's URL.
+
+- Spec.endpoint.port is the service's port name
+- Spec.Selector.matchlabels needs to match the service's label
 
 
 </aside>
@@ -94,11 +107,13 @@ rules:
 ```
 
 <aside class="notes">
-For security, rbac is on by default.
 
-the metrics are protected by rbac rules.
+- operator-framework use kubebuilder to scalfold operator
+- metrics are protected by kube-rbac-proxy by default
+- grant permissions to the Prometheus server so that it can scrape the protected metrics.
+- To achieve this
+- clusterrole
 
-so we need to create a clusterrole 
 </aside>
 ---
 ```
@@ -117,8 +132,10 @@ subjects:
 ```
 
 <aside class="notes">
-and a clusterrole binding to bind
-the clusterrole to the prometheus-k8s serviceaccount in the openshift-monitoring namespace
+
+- and a clusterrole binding to bind
+- clusterrole to prometheus-k8s serviceaccount in the openshift-monitoring namespace
+
 </aside>
 ---
 
@@ -233,6 +250,8 @@ Use metrics to create Alert rules to produce alerts
 ---
 
 ### Demo
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/9JYMSE4TZj8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ---
 

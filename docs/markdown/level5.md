@@ -45,7 +45,9 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 ---
 #### Custom Metrics
 - `apiVersion: autoscaling/v2`
+
 - Any ideas?
+
 	1. Requests per second?
 	2. HTTP error rate?
 	3. Number of restarts?
@@ -53,4 +55,15 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 ---
 #### AI in Operator?
 
-- Learn the Performance Baseline
+
+
+#### Take Aways 
+- Operator is able to Deploy the operand application.
+- It's possible to perform seamless upgrades to the operator and operands.
+- Backup and Restore are in place.
+- The operator as well as the operands expose metrics, which are aggregarated using Prometheus.
+- The operator is able to autoscale based on the application loop.
+
+- For the near Future:
+    - Scaffolding a L5 Operator with all capabilities in place.
+	- Operator will take action in autopilot mode based on what it learned from Performance Baseline.

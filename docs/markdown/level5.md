@@ -1,17 +1,18 @@
 #### You deserve a good night's sleep
 
-<img src="../images/dreamworks.png" width="70%" alt="operator diagram" />
+<img src="images/dreamworks.png" width="70%" alt="operator diagram" />
 
 ---
-<aside class="notes">
-  Operator upgrades can be configured to be done automatically via the Operator Lifecycle Manager. The version of the Operand is controlled by a field in our operators Custom Resource
-</aside>
 
-Can your operator:
+#### Can your operator:
 - Read metrics?
 - Auto-scale?
 - Move Workloads?
 - Restart internal resources?
+
+<aside class="notes">
+  Operator upgrades can be configured to be done automatically via the Operator Lifecycle Manager. The version of the Operand is controlled by a field in our operators Custom Resource
+</aside>
 
 ---
 #### Enabling HPA
@@ -28,28 +29,28 @@ spec:
   maxReplicas: 10
   version: "1.3"
 </code></pre>
+
 ---
 #### HPA Workflow
 
-<img src="../images/HPA-Diagram.jpeg" width="70%" alt="operator diagram" />
+<img src="images/HPA-Diagram.jpeg" width="70%" alt="operator diagram" />
 
 ---
-
 #### Load Test Demo
 ```
 kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
 ```
 ---
 #### Custom Metrics
-
----
 - `apiVersion: autoscaling/v2`
 - Any ideas?
 	1. Requests per second?
 	2. Error rate? 
+
+---
 	
 #### AI in Operator?
----
 - Learn the Performance Baseline
 
-#### Thank you!
+---
+#### Demo

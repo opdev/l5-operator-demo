@@ -138,7 +138,7 @@ we can create a new db with the old db as the source
 </aside>
 
 ---
-#### We can have all this orchrestrated by the operator!
+#### orchrestrated by the operator!
 
 ![General Approach](images/general_approach.png)
 

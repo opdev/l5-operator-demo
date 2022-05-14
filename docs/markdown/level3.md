@@ -135,16 +135,6 @@ Don't yet have a demo prepared but open to questions and feedback
 </aside>
 
 ---
-#### Can be orchrestrated by the operator!
-
-![General Approach](images/general_approach.png)
-
-<aside class="notes">
-Speaker notes:
-There are other tools that can do this but the advantage is that you can customize, package and distribute this with your app through operator hub
-</aside>
-
----
 #### Cloning the db (from bestie1)
 - Set the old db as the datasource
 ```
@@ -166,6 +156,7 @@ we can create a new db with the old db as the source
 
 ---
 #### Create bestie2
+- point to the cloned database
 ```
 apiVersion: pets.bestie.com/v1
 kind: Bestie
@@ -180,7 +171,16 @@ spec:
 
 <aside class="notes">
 Speaker notes:
-we can create a new db with the old db as the source
+The operator refers to the database via the postgrescluster with a defined name so it will automatically use the cloned database. Next we update the existing service to point to this new stack by refering to it by label. So all the building blocks to acheieve this workflow are in place and can be orchrestated by our operator
 </aside>
 
+
 ---
+#### All this can be orchrestrated by the operator!
+
+![General Approach](images/general_approach.png)
+
+<aside class="notes">
+Speaker notes:
+There are other tools that can do achieve this workflow but the advantage of using an operator is that you can customize, package and distribute this with your application and provide your users with an app store like experience via operator hub.
+</aside>

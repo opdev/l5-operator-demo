@@ -122,7 +122,7 @@ subReconcilerList := []srv1.Reconciler{
 
 ### Demo
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/M-6-6Zt5E2E" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/0UF2Khwc0AU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <aside class="notes">
 	- so to demonstrate, here is our operator with a level one capability of basic installation.

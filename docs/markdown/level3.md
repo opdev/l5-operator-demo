@@ -102,9 +102,23 @@ Don't yet have a demo prepared but open to questions and feedback
 </aside>
 
 ---
+#### Can be orchrestrated by the operator!
+
+![General Approach](images/general_approach.png)
+
+<aside class="notes">
+Speaker notes:
+There are other tools that can do this but the advantage is that you can customize, package and distribute this with your app through operator hub
+</aside>
+
+---
 #### Cloning the db (from bestie1)
-- Set the db as the datasource
+- Set the old db as the datasource
 ```
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: bestie2-pgc
 spec:
   dataSource:
     postgresCluster:
@@ -118,8 +132,8 @@ we can create a new db with the old db as the source
 </aside>
 
 ---
-#### Cloning the application (create bestie2)
-- Create a new bestie custom resource
+#### Create bestie2
+- Use the cloned db
 ```
 apiVersion: pets.bestie.com/v1
 kind: Bestie
@@ -135,16 +149,6 @@ spec:
 <aside class="notes">
 Speaker notes:
 we can create a new db with the old db as the source
-</aside>
-
----
-#### orchrestrated by the operator!
-
-![General Approach](images/general_approach.png)
-
-<aside class="notes">
-Speaker notes:
-There are other tools that can do this but the advantage is that you can customize, package and distribute this with your app through operator hub
 </aside>
 
 ---

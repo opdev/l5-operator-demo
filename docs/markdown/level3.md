@@ -151,7 +151,7 @@ There are other tools that can do this but the advantage is that you can customi
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
-  name: bestie2-pgc
+  name: bestie2-pgo
 spec:
   dataSource:
     postgresCluster:
@@ -166,7 +166,6 @@ we can create a new db with the old db as the source
 
 ---
 #### Create bestie2
-- Use the cloned db
 ```
 apiVersion: pets.bestie.com/v1
 kind: Bestie

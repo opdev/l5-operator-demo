@@ -1,4 +1,12 @@
 #### You deserve a good night's sleep
+
+<img src="../images/dreamworks.png" width="70%" alt="operator diagram" />
+
+---
+<aside class="notes">
+  Operator upgrades can be configured to be done automatically via the Operator Lifecycle Manager. The version of the Operand is controlled by a field in our operators Custom Resource
+</aside>
+
 Can your operator:
 - Read metrics?
 - Auto-scale?
@@ -9,34 +17,39 @@ Can your operator:
 #### Enabling HPA
 - Set MaxReplicas to activate it.
 
-```
-func horizontalpodautoscalers(ctx context.Context, bestieDeployment appsv1.Deployment, bestie v1.Bestie, client cli.Client, r *runtime.Scheme) error {
-	desired := []autoscalingv1.HorizontalPodAutoscaler{}
+<pre><code data-trim data-noescape>
+apiVersion: pets.bestie.com/v1
+kind: Bestie
+metadata:
+  name: bestie
+spec:
+  size: 3
+  image: quay.io/opdev/bestie
+  maxReplicas: 10
+  version: "1.3"
+</code></pre>
+---
+#### HPA Workflow
 
-	if bestie.Spec.MaxReplicas != nil {
-		log.Info("MaxReplicas is set, enabling HPA")
-		desired = append(desired, hpa.AutoScaler(ctrllog.Log, bestieDeployment, bestie))
-	}
-
-	if err := applyHorizontalPodAutoscalers(ctx, bestie, client, r, desired); err != nil {
-		log.Error(err, "failed to reconcile the expected horizontal pod autoscalers")
-		return err
-	}
-	return nil
-}
-```
+<img src="../images/HPA-Diagram.jpeg" width="70%" alt="operator diagram" />
 
 ---
 
-#### Fake load Demo
+#### Load Test Demo
 ```
 kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
 ```
-
-```
-kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
-```
+---
+#### Custom Metrics
 
 ---
+- `apiVersion: autoscaling/v2`
+- Any ideas?
+	1. Requests per second?
+	2. Error rate? 
+	
+#### AI in Operator?
+---
+- Learn the Performance Baseline
 
 #### Thank you!

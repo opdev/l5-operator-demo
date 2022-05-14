@@ -29,6 +29,7 @@ tests/_build/
 
 # MacOS related artifacts
 .DS_Store
+.vscode/
 
 # Logs
 logs.txt

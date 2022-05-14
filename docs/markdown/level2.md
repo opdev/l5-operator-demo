@@ -1,17 +1,17 @@
 ####
+![Free Lunch](images/freelunch.jpeg)
+
+<aside class="notes">
+  Economists like to say there is no such thing as a free lunch but in kubernetes you get a bunch of things for free and thats the sort of theme of level 2 and level 3.
+</aside>
+
+---
+####
 - Operator
 - Operand (Our Application)
 
 <aside class="notes">
   What is Level 2 ? On a basic level it can be described as being able to perform minor and patch upgrades. There are two layers two consider here. The Operator and the Operand i.e. our application. Operator upgrades can be configured to be done automatically via the Operator Lifecycle Manager. The version of the Operand is controlled by a field in our operators Custom Resource.
-</aside>
-
----
-####
-![Free Lunch](images/freelunch.jpeg)
-
-<aside class="notes">
-  Economists like to say there is no such thing as a free lunch but in kubernetes you get a bunch of things for free and thats the sort of theme of level 2 and level 3.
 </aside>
 
 ---

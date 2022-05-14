@@ -53,10 +53,6 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 	3. Number of restarts?
 
 ---
-#### AI in Operator?
-
-
-
 #### Take Aways 
 - Operator is able to Deploy the operand application.
 - It's possible to perform seamless upgrades to the operator and operands.
@@ -64,6 +60,7 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 - The operator as well as the operands expose metrics, which are aggregarated using Prometheus.
 - The operator is able to autoscale based on the application loop.
 
-- For the near Future:
-    - Scaffolding a L5 Operator with all capabilities in place.
-	- Operator will take action in autopilot mode based on what it learned from Performance Baseline.
+---
+#### For the near Future:
+- Scaffolding a L5 Operator with all capabilities in place.
+- Operator will take action in autopilot mode based on what it learned from Performance Baseline.

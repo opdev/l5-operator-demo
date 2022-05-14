@@ -17,6 +17,39 @@
 </aside>
 
 ---
+#### How do we consume the postgres operator ?
+
+<aside class="notes">
+  Speaker note:
+  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
+</aside>
+
+---
+#### The PostgresCluster custom resource
+```
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: bestie-pgo
+  spec:
+    image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi8-14.2-1
+    postgresVersion: 14
+    instances:
+      - name: instance1
+        dataVolumeClaimSpec:
+          accessModes:
+          - "ReadWriteOnce"
+          resources:
+            requests:
+              storage: 1Gi
+  
+```
+<aside class="notes">
+  Speaker note:
+  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
+</aside>
+
+---
 #### Backup Options
 - Write Ahead Logs
 - Scheduled and On Demand Backups Offsite

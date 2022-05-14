@@ -140,6 +140,8 @@ we can create a new db with the old db as the source
 ---
 #### We can have all this orchrestrated by the operator!
 
+![General Approach](images/general_approach.png)
+
 <aside class="notes">
 Speaker notes:
 There are other tools that can do this but the advantage is that you can customize, package and distribute this with your app through operator hub

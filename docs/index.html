@@ -30,26 +30,30 @@
 
 				<section data-auto-animate>
 					<img src="images/operators-meme.jpeg" >
-					<h3 class="fragment fade-up" data-fragment-index="0">What is an operator <a href="https://bestie-rescue.herokuapp.com/">?</a></h3>
+					<aside class="notes">
+						- its hard, but we are going break it up and explain it as best we can
+						- what is an operator?
+					</aside>
 				</section>
+
 
 				<section>
 					<img src="images/operator.jpg" width="70%" alt="operator diagram">
 					<aside class="notes">
+						- Operators can be thought of as kubernetes native applications that extend the functionality of kubernetes.
+						<br>
 						- a pattern in kubernetes that uses custom resources and controllers to manage applications in a cluster
 						<br>
-						- Operators can be thought of as kubernetes native extensions that extend the functionality of kubernetes.
-						<br>
-						- Control loop that watches the state of the current cluster and tries to bring it closer to the desired state that's declared in the resource definition files.
+						- A controller is a control loop that watches the state of the current cluster and tries to bring it closer to the desired state that's declared in the custom resource
 						- A controller can be though of as a person who is doing things by looking up sticky note/template/image/recipe that we provide(cr)
 						- EX: something happens(event) we install the operator (event) the controller looks up the sticky note (custom resource) and does a something (configures our app)
 						<br>
 						- operators have different maturity levels and capabilities from basic install to autopilot
 						<br>
-						- With an autopilot operator being our end goal for our operator
+						- With an autopilot operator being our end goal for all operators
 						- What is an autopilot operator... *transition to the next slide*
 						<br>
-						- The Operator Framework defines that very will in their capabilities model
+						- The Operator Framework explains that very will in their capabilities model
 					</aside>
 				</section>
 
@@ -63,14 +67,14 @@
 							in an effective, automated, and scalable way.
 						<br>
 							- Operators come in different maturity levels so this
-							capability model aims to provide a guide as to what features users can
+							capability model provides a guide as to what features users can
 							expect from an Operator.
 						<br>
-							- The operator framework defines 5 levels of operator capabilities. level 1: basic install, level 2: seamless
+							- Currently there are 5 levels of operator capabilities. level 1: basic install, level 2: seamless
 							upgrade, level 3: backup & restore, level 4: deep insights, and level 5: autopilot.
 						<br>
-							- Our goal with the l5-operator is to showcase all the capabilities of an operator all the way until it reaches complete autopilot
 							- An autopilot operator can auto-scale, auto-heal, auto-tune, & detect abnormailities(deviations from standard performance and act on it automatically or alert us)
+							- Our goal with the l5-operator is to showcase all the capabilities of an operator all the way until it reaches complete autopilot
 						<br>
 							- Currently on operatorhub.io
 							70% of the published operators have level 2 capabilities and only 5% of operators have level 5 capabilities.

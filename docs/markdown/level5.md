@@ -47,10 +47,6 @@ kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never --
 	1. Requests per second?
 	2. Error rate? 
 
----
-	
+---	
 #### AI in Operator?
 - Learn the Performance Baseline
-
----
-#### Demo

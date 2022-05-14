@@ -29,7 +29,7 @@ We use Prometheus to stores both the metrics and the alerting rules, while grafa
 
 ### Expose Operator Metrics
 
-<img src="images/servicemonitor.jpg" width="85%" alt="servicemonitor flowchart">
+<img src="images/ServiceMonitor.jpg" width="85%" alt="servicemonitor flowchart">
 
 <aside class="notes">
 Prometheus's servicemonitor allows prometheus to scrape metrics from the service.

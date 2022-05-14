@@ -29,25 +29,22 @@
 
 
 				<section data-auto-animate>
-					<h3>What is an operator <a href="https://bestie-rescue.herokuapp.com/">?</a></h3>
-					<p class="fragment fade-up">A controller and <span style="color:red">custom resource</span></p>
-					<aside class="notes">
-						- The term operator refers to a pattern in kubernetes that uses custom resources and controllers to manage applications in a cluster
-						<br>
-						- Operators can be thought of as kubernetes native extensions that extend the functionality of kubernetes.
-					</aside>
+					<img src="images/operators-meme.jpeg" >
+					<h3 class="fragment fade-up" data-fragment-index="0">What is an operator <a href="https://bestie-rescue.herokuapp.com/">?</a></h3>
 				</section>
 
 				<section>
 					<img src="images/operator.jpg" width="70%" alt="operator diagram">
 					<aside class="notes">
+						- a pattern in kubernetes that uses custom resources and controllers to manage applications in a cluster
+						<br>
+						- Operators can be thought of as kubernetes native extensions that extend the functionality of kubernetes.
+						<br>
 						- Control loop that watches the state of the current cluster and tries to bring it closer to the desired state that's declared in the resource definition files.
 						- A controller can be though of as a person who is doing things by looking up sticky note/template/image/recipe that we provide(cr)
 						- EX: something happens(event) we install the operator (event) the controller looks up the sticky note (custom resource) and does a something (configures our app)
 						<br>
-						- The operator framework defines 5 different capabilities that operators can have.
-						- The L5 operator was created to demonstrate the capabilities of an operator
-						from Level 1:basic installation to Level 5:autopilot.
+						- operators have different maturity levels and capabilities from basic install to autopilot
 						<br>
 						- With an autopilot operator being our end goal for our operator
 						- What is an autopilot operator... *transition to the next slide*

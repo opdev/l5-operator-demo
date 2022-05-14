@@ -23,8 +23,6 @@
 ---
 
 <div class="r-stack">
-
-  <img class="fragment fade-out" data-fragment-index="0" src="images/bestie_black.png" >
   <span class="fragment current-visible" data-fragment-index="0">
 	<h3>Desired State</h3>
 	<ul>
@@ -109,7 +107,7 @@ subReconcilerList := []srv1.Reconciler{
 
 ### Demo
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/IBda_F3d-HI" title="YouTube video player" autoplay=1 mute=1 frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay" allowfullscreen data-preload></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/M-6-6Zt5E2E" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <aside class="notes">
 	- so to demonstrate, here is our operator with a level on capability of basic installation.

@@ -47,15 +47,14 @@ spec:
 
 ---
 #### Seamless*
-Liveness and Readiness probes ensure that your image is rolled out only if it is healthy
+For minor / patch version updates liveness and readiness probes ensure that your image is rolled out only if it is healthy
 
 <aside class="notes">
   Failing liveness probe will restart the container, whereas failing readiness probe will stop our application from serving traffic.</aside>
 
 
 ---
-#### 
-Seamless but conditions apply*
+#### Seamless but conditions apply*
 
 <aside class="notes"> 
   What if you have a bad version ?
@@ -72,4 +71,3 @@ What if there are incompatible changes ?
   A bit more sophistication is needed requiring level 3 capabilities
   Rollouts will be seamless as long as there are no breaking database changes
 </aside>
-

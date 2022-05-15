@@ -75,5 +75,5 @@ What if there are incompatible changes ?
 ![Incompatible Changes](images/incompatible_upgrade.png)
 
 <aside class="notes"> 
-  A bit more sophistication is needed to handle this kind of a scenario. So at the level 2 capability level upgrades will be seamless as long as there are no breaking database changes
+  A short disruption may be experienced as the new version makes some database changes that are incompatible with the old version. A bit more sophistication is needed to avoid this kind of a scenario. So at the level 2 capability level upgrades will be seamless as long as there are no breaking database changes
 </aside>

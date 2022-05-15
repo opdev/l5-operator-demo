@@ -36,7 +36,7 @@ spec:
 ```
 
 <aside class="notes">
-  We can perform application updates by updating the our custom resource. Behind the scenes we use the kuberenetes client provided by the k8s controller runtime lib to update the deployment resource in kubernetes. Since the "user interface" of our operator is the CR, both the application image as well the version are exposed in the CR. Our controller gets the desired version from custom resource and update the pod template in the deployment image if current version is different than the desired version that we have set in our Spec.
+   Our custom resource can be thought of as the "user interface" of our operator and application combo. Both the application image as well the version are exposed in the CR. We can perform application updates by updating the our custom resource. Behind the scenes we use the kuberenetes client provided by the k8s controller runtime lib to update the deployment resource in kubernetes. Our controller gets the desired version from custom resource and update the pod template in the deployment image if current version is different than the desired version that we have set in our Spec.
 </aside>
 
 ---
@@ -45,10 +45,14 @@ spec:
 Status:
   Appversion:  1.4
   Podstatus:
-    bestie-app-7b44d67f9f-ns5bp : Running : quay.io/opdev/bestie:1.4
-    bestie-app-7bd89d6bf4-vpjqh : Running : quay.io/opdev/bestie:1.3
-    bestie-app-7b44d67f9f-4sxjr : Pending : quay.io/opdev/bestie:1.4
-    bestie-app-7bd89d6bf4-wgrpk : Running : quay.io/opdev/bestie:1.3
+    bestie-app-7b44d67f9f-ns5bp : 
+      Running : quay.io/opdev/bestie:1.4
+    bestie-app-7bd89d6bf4-vpjqh : 
+      Running : quay.io/opdev/bestie:1.3
+    bestie-app-7b44d67f9f-4sxjr : 
+      Pending : quay.io/opdev/bestie:1.4
+    bestie-app-7bd89d6bf4-wgrpk : 
+      Running : quay.io/opdev/bestie:1.3
 ```
 
 <aside class="notes">

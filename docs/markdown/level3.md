@@ -8,21 +8,21 @@
 </aside>
 
 ---
-#### Postgres Operator
-A Database-as-a-Service but within our cluster
-
-<aside class="notes">
-  Speaker note:
-  Our app stores its state in a postgres database, which has been provisioned by the postgres operator. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
-</aside>
-
----
 #### 2nd Free Lunch
 The postgres operator gives us level 3 for free
 
 <aside class="notes">
   Speaker note:
   However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. 
+</aside>
+
+---
+#### Postgres Operator
+A Database-as-a-Service but within our cluster
+
+<aside class="notes">
+  Speaker note:
+  Our app stores its state in a postgres database, which has been provisioned by the postgres operator. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
 </aside>
 
 ---
@@ -55,6 +55,7 @@ metadata:
               storage: 1Gi
   
 ```
+
 <aside class="notes">
   Speaker note:
   Earlier we noted that the custom resource can be thought of as a user or consumer interface to operators or kubernetes native applications. An operator can consume another operator by creating / interacting with another operators custom resource which is intern reconciled by that operator.

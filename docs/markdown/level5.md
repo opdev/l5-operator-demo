@@ -36,11 +36,13 @@ spec:
 ![hpa](images/HPA-Diagram.jpeg)
 
 ---
-#### Load Test Demo
+#### Demo
 
-```
-kubectl run -i --tty load-generator --rm --image=busybox:1.28 --restart=Never -- /bin/sh -c "while sleep 0.01; do wget -q -O- http://bestie-service; done"
-```
+---
+### Demo
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/U3yelj0avfY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+</iframe>
 
 ---
 #### Custom Metrics

@@ -9,7 +9,7 @@
 
 ---
 #### Postgres Operator
-- A Database-as-a-Service but within our cluster
+A Database-as-a-Service but within our cluster
 
 <aside class="notes">
   Speaker note:
@@ -73,7 +73,7 @@ metadata:
 
 ---
 #### Simple Example
-- One-off backup
+One-off backup
 ```
 oc annotate -n postgres-operator postgrescluster 
 bestie-pgc \
@@ -115,7 +115,7 @@ Effectively always roll forward
 
 ---
 #### The "easy way"
-- Allow for some service disruption
+Allow for some service disruption
 
 ---
 #### In place point in time recovery
@@ -159,7 +159,7 @@ kubectl annotate -n postgres-operator postgrescluster bestie-pgc --overwrite \
 
 ---
 #### Cloning the db (from Bestie version A)
-- Set the old db as the datasource
+Set the old db as the datasource
 
 ```
 apiVersion: postgres-operator.crunchydata.com/v1beta1
@@ -180,7 +180,7 @@ This can be done by modifying by creating a new PostgresCluster custom resource 
 
 ---
 #### Create Bestie version B
-- Point to the cloned database (Version A)
+Point to the cloned database (Version A)
 ```
 apiVersion: pets.bestie.com/v1
 kind: Bestie

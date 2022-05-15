@@ -18,7 +18,7 @@
 
 ---
 #### 
-- The postgres operator gives us level 3 for free
+The postgres operator gives us level 3 for free
 
 <aside class="notes">
   Speaker note:
@@ -26,9 +26,9 @@
 </aside>
 
 ---
-#### How do we consume the postgres operator
+#### How to consume the postgres operator
 - OLM installs it as a dependency
-- The PostgresCluster custom resource
+- Our operator manipulates the PostgresCluster custom resource
 
 <aside class="notes">
   Speaker note:

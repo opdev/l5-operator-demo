@@ -44,7 +44,8 @@ We want bestie operator to
 </aside>
 ---
 
-Exposing operator metrics
+Expose operator metrics
+- Create ServiceMonitor
 
 <img src="images/ServiceMonitor.jpg" width="85%" alt="servicemonitor flowchart">
 
@@ -91,6 +92,9 @@ spec:
 </aside>
 
 ---
+
+Expose operator metrics
+- Grant permission to Prometheus server
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1

@@ -1,4 +1,3 @@
----
 ####
 - Operator
 - Operand (Our Application)

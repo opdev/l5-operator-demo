@@ -17,7 +17,7 @@
 </aside>
 
 ---
-#### Free Lunch
+#### 2nd Free Lunch
 The postgres operator gives us level 3 for free
 
 <aside class="notes">
@@ -173,14 +173,9 @@ spec:
       repoName: repo1
 ```
 
-```
-oc annotate -n postgres-operator postgrescluster bestie-pgc \
-  postgres-operator.crunchydata.com/pgbackrest-backup="$(date)"
-```
-
 <aside class="notes">
 Speaker notes:
-This can be done by modifying the PostgresCluster custom resource
+This can be done by modifying by creating a new PostgresCluster custom resource and referring to the existing database as the datasource in the spec
 </aside>
 
 ---

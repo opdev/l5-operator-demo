@@ -17,7 +17,7 @@
 </aside>
 
 ---
-#### 
+#### Free Lunch
 The postgres operator gives us level 3 for free
 
 <aside class="notes">

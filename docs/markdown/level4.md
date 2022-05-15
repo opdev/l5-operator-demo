@@ -10,29 +10,34 @@ Thank you Sid.
 - Working level 3 operator
 - seamless upgrades
 - full lifecycle
-- something unexpected
-- upgrade bestie application version
-- change manifest and apply
-- a while goes by
-- manager, upgrade didn't work
-- pod status, in the Waiting state because the image cannot be pulled because I had the wrong version
+- something went wrong
+- upgrade bestie application to the latest version didn't work
+- a few days goes by
+- upgrade didn't work
+- kubectl get pod
+- pod status is in the Waiting state, the image cannot be pulled because I had the wrong version
 - after I applied the cr with the correct version number the upgrade succeded.
 
 so this brings us to Level 4 - Deep Insights.
 
 - metrics, alerts, log processing and workload analysis.
+</aside>
 
-- implement level 4 cabability
-- detect errors and anomality early and create alert support if needed.
-- full monitoring of the operator and the operand. 
-- Create metrics and alerts accordingly.
+---
 
-- Prometheus to stores both the metrics and the alerting rules
-- grafana produces meaninful and customizable dashboards to display metrics and alerts by using prometheus data.
+We want bestie operator to
 
-1. expose metrics.
+- Setup full monitoring and alerting for the operand
+- Expose metrics about its health
+- Exposes health and performance metrics about the Operand
+- Aggregate metrics using Prometheus and visualize using Grafana.
 
-2. Create Alert based on metrics 
+
+<aside class="notes">
+
+1. How to expose metrics
+
+2. Create Alerting rules 
 
 3. Demo
 
@@ -45,14 +50,12 @@ Exposing operator metrics
 
 <aside class="notes">
 
-- Servicemonitor
+What is a Servicemonitor
+
 - ServiceMonitor describes the set of targets to be monitored by Prometheus 
-- scrape metrics from the service.
-- operator-service target
-- operand-service target
-- can anyone tell me why we don't need to setup a servicemonitor to scrape operator's metrics?
-- in what namespace apply servermonitor yaml manifest
-- same namespace as the service
+- setup servicemonitor for the operand
+- can anyone tell me why we don't need to setup a servicemonitor for the operator?
+- the servicemonitor needs to be in the same namespace as the bestie application 
 
 </aside>
 
@@ -76,13 +79,12 @@ spec:
 ```
 <aside class="notes">
 
-- servicemonitor to scrape bestie application metrics
+- servicemonitor monitor bestie application metrics
+- coming from bestie website
+- bestie-route-bestie.apps.demo.opdev.io/metrics
 
-- expose application's metrics with /metrics path to the application's URL.
-
-- Spec.endpoint.port is the service's port name
+- Make a note, Spec.endpoint.port is the service's port name
 - Spec.Selector.matchlabels needs to match the service's label
-
 
 </aside>
 
@@ -112,7 +114,7 @@ rules:
 - metrics are protected by kube-rbac-proxy by default
 - grant permissions to the Prometheus server so that it can scrape the protected metrics.
 - To achieve this
-- clusterrole
+- create a clusterrole
 
 </aside>
 ---
@@ -132,9 +134,9 @@ subjects:
 ```
 
 <aside class="notes">
-
-- and a clusterrole binding to bind
-- clusterrole to prometheus-k8s serviceaccount in the openshift-monitoring namespace
+snipid yaml manifest
+- and a clusterrolebinding to bind
+- clusterrole prometheus-k8s-role to prometheus-k8s serviceaccount in the openshift-monitoring namespace
 
 </aside>
 ---
@@ -147,12 +149,16 @@ openshift.io/cluster-monitoring="true"
 
 
 <aside class="notes">
-also create a label for each namespace where the servicemonitor is scraping the metrics.
 
-we created a label in the operator namespace and another lable in the operand's namespace
+Set the labels for the namespace that you want to scrape, which enables OpenShift cluster monitoring for that namespace
+
+- operator namespace
+- bestie application namespace
 
 </aside>
 ---
+
+Publish custom metrics
 
 ```
 var (
@@ -172,61 +178,57 @@ var (
 ```
 
 <aside class="notes">
-To publish the metrics, we first need to
-Declare collectors as global variables.
 
-Best practice, prefix metric with name of your operator
-Easy search for your metric
+1. Declare collectors as global variables.
 
-4 types of metrics, 
-Counter, Gauge, histogram, and summary
+   - ApplicationUpgradeCounter
+   - ApplicationUpgradeFailure are collectors.
 
-A counter is a cumulative metric that represents a single monotonically increasing counter whose value can only increase or be reset to zero on restart. For example, you can use a counter to represent the number of requests served, tasks completed, or errors.
+4 types of metrics 
+- Counter, Gauge, histogram, and summary
 
-A gauge is a metric that represents a single numerical value that can arbitrarily go up and down.
+ApplicationUpgradeCounter is a counter, it's value can only increase or be reset to 0 on restart.
+- it tracks the number of successful operand upgrades processed.
 
-Gauges are typically used for measured values like temperatures or current memory usage, but also "counts" that can go up and down, like the number of concurrent requests.
+ApplicationUpgradeFailure is a gauge, is a number that can go up or down.
+- it tracks the pod's image status.
+  When the pod status keeps cycling and never reach the complete status. We look at the waiting.Reason. If it's ErrImagePull or ImagePullBackoff, then we set
 
-bestie_upgrade_counter : type : counter
-bestie_upgrade_failure : type : gauge
+Best practice, prefix metric with name of the operator
 
-
-
-register the collectors with metrics.registry.mustregister before using it.
+   - bestie_upgrade_counter
+   - bestie_upgrade_failure
 
 
 </aside>
 ---
 
 ```
-bestie_metrics.ApplicationUpgradeCounter.Inc()
-```
+import "github.com/prometheus/client_golang/prometheus"
+...
+ApplicationUpgradeCounter.Inc()
 
 ```
-bestie_metrics.ApplicationUpgradeFailure.Set(rc)
+
+<aside class="notes">
+
+- Increase the counter
+- use Inc() method provided by the prometheus client-go package
+
+</aside>
+---
+
+```
+ApplicationUpgradeFailure.Set(rc)
+
 ```
 <aside class="notes">
 
-bestie_upgrade_counter metric is a counter that tracks the number oof successful operand upgrades processed.
-
-To increase the metric by increasing the collector, ApplicationUpgradeCounter.Inc().
-
-bestie_upgrade_failure metric tracks the status of the pod's image status.
-When the pod status keeps cycling and never reach the complete status. We look at the waiting.Reason. If it's ErrImagePull or ImagePullBackoff, then we set
-the ApplicationUpgradeFailure.Set(rc)
-
-and we wanted to create a metric for the upgrade's pod status.
-
- created bestie_upgrade_failure, a gauge, set a number. 0 is Upgrade not found image issue and 1 is bad image found.
- 
-
-- Everytime the operand is upgraded, the bestie_upgrade_counter increases by 1.
-
+- Use the Set() method
 - Set the state for the operand upgrade
-if string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ErrImagePull" ||
-        string(pod.Status.ContainerStatuses[0].State.Waiting.Reason) == "ImagePullBackOff" {
-        return 1
-    }
+
+Look at the code
+
 </aside>
 ---
 
@@ -255,20 +257,20 @@ Use metrics to create Alert rules to produce alerts
 
 ---
 
-### What's next for metrics and alerts
+### Metrics for thoughts
+
+-  Number of visitors
+-  What pages viewed
+-  Operation performed ( success or failed )
+-  How many pets were adopted
 
 <aside class="notes">
-Add metrics -
 
 Number of visitors to the site
-
 What pages were viewed
-
 What operations did the user do - search pet/insert add/updated add/etc. And did it succeed or failed
-
 How many pets were adopted and their details as labels (pet type:dog/cat/etc, time the add was listed/ age of the pet/ gender, has picture:yes/no)
 
-Integrate with AlertManager. Routes alert to email, slack, etc.
 
 </aside>
 

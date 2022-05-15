@@ -75,8 +75,9 @@ metadata:
 #### Simple Example
 - One-off backup
 ```
-oc annotate -n postgres-operator postgrescluster bestie-pgc \
-  postgres-operator.crunchydata.com/pgbackrest-backup="$(date)"
+oc annotate -n postgres-operator postgrescluster 
+bestie-pgc \
+postgres-operator.crunchydata.com/pgbackrest-backup="$(date)"
 ```
 
 <aside class="notes">
@@ -94,7 +95,9 @@ The operator can achieve this step by retrieving the latest version of the Postg
 
 ---
 #### Service disruptions
-- Application and database compatibility
+- Coming back to the problem of application and database compatibility
+
+![Incompatible Changes](images/incompatible_upgrade.png)
 
 <aside class="notes">
   Speaker notes:
@@ -102,6 +105,16 @@ The operator can achieve this step by retrieving the latest version of the Postg
 </aside>
 
 ---
+#### Ensure Backward compaitibility
+- Effectively always roll forward
+
+<aside class="notes">
+  Speaker notes:
+  Another way to avoid disruption is to make small changes and always ensure that the app and the db are compatible. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible.
+</aside>
+
+---
+
 #### The "easy way"
 - Allow for some service disruption
 
@@ -130,24 +143,19 @@ kubectl annotate -n postgres-operator postgrescluster bestie-pgc --overwrite \
 </aside>
 
 ---
-#### Ensure Backward compaitibility
-- Effectively always roll forward
-
-<aside class="notes">
-  Speaker notes:
-  Another way to avoid disruption is to make small changes and always ensure that the app and the db are compatible. One approach to handle this is to bake the appropriate migrations scripts into the app itself so that the app can be compatible with different database versions. However this may not always be possible.
-</aside>
-
----
-
 #### A more generalized approach
 - Clone the existing database
 - Spin up a new instance with a different app version
+- Perform disruptve operations
 - Switch traffic over
 
 <aside class="notes">
   Speaker notes:
-  A more general way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. Switch the app into a read only mode in order to prevent dataloss during the upgrade process.. spin up a new database instance and a a new deployment with an older version of the app and the database (which are compatible) .. backup the read only instance and restore it to the newly spun up instance after applying any migrations if neccessary and then switch traffic over. This is something that can be automated by software operators.
+  A more general way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. 
+  - switch the app into a read only mode in order to prevent dataloss during the upgrade process..
+  - spin up a new database instance by cloning the existing db
+  - perform disruptive actions ex: rolling back or pushing an update with incompatible database changes..
+  - switch traffic over. This is something that can be automated by software operators.
 </aside>
 
 ---

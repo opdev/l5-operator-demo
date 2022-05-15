@@ -104,7 +104,7 @@ Coming back to the problem of application and database compatibility
 </aside>
 
 ---
-#### Ensure Backward compaitibility
+#### Ensure Backward compatibility
 Effectively always roll forward
 
 ![Incompatible Changes](images/incompatible_upgrade.png)

@@ -60,18 +60,12 @@ Status:
 </aside>
 
 ---
-#### Seamless Upgrades
-For minor / patch version updates
+#### Seamless Upgrades*
+*For minor / patch version updates
 
 <aside class="notes">
-  This is another thing that we get for free with Kubernetes. liveness and readiness probes ensure that your image is rolled out only if it is healthy.
-</aside>
+  This is another thing that we get for free with Kubernetes. liveness and readiness probes ensure that your image is rolled out only if it is healthy.   There are scenarios where upgrades or more generally version changes may not be seamless. One example of this is incompatible database changes.
 
----
-#### Seamless but conditions apply*
-
-<aside class="notes"> 
-  There are scenarios where upgrades or more generally version changes may not be seamless. One example of this is incompatible database changes.
 </aside>
 
 ---

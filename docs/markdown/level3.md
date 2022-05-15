@@ -13,7 +13,7 @@
 
 <aside class="notes">
   Speaker note:
-  So in order to achieve level 3 capability our operator need only be able to backup and restore. Our app stores its state in a postgres database, which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
+  Our app stores its state in a postgres database, which has been provisioned by the postgres operator. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
 </aside>
 
 ---
@@ -22,12 +22,12 @@
 
 <aside class="notes">
   Speaker note:
-  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. The postgres operator essentially allows us to have a "database-as-a-service" but one that is completely in our control.
+  However, Since our app stores its state in a postgres database which has been provisioned by the postgres operator, we can continue to leverage that operators features to have backup and restore functionality. 
 </aside>
 
 ---
 #### How do we consume the postgres operator
-- OLM can install it as a dependency
+- OLM installs it as a dependency
 - The PostgresCluster custom resource
 
 <aside class="notes">
@@ -57,7 +57,7 @@ metadata:
 ```
 <aside class="notes">
   Speaker note:
-  Earlier we noted that the custom resource can be thought of as the interface to operators or kubernetes native applications. An operator can consume another operator by creating / interacting with another operators custom resource which is intern reconciled by that operator.
+  Earlier we noted that the custom resource can be thought of as a user or consumer interface to operators or kubernetes native applications. An operator can consume another operator by creating / interacting with another operators custom resource which is intern reconciled by that operator.
 </aside>
 
 ---
@@ -81,7 +81,7 @@ oc annotate -n postgres-operator postgrescluster bestie-pgc \
 
 <aside class="notes">
 Speaker notes:
-The operator can achieve this step by retrieving the latest version of the PostgresCluster and editing its annotations. The Postgres Operator will be notified of this change via an event since it is watching for changes and will go ahead and run the appropriate commands to complete the backup and once done will remove the annotation.
+The operator can achieve this step by retrieving the latest version of the PostgresCluster and editing its annotations. The Postgres Operator will be notified of this change via an event since it is watching for changes and will go ahead and run the appropriate actions to complete the backup and once done will remove the annotation.
 </aside>
 
 ---
@@ -89,7 +89,7 @@ The operator can achieve this step by retrieving the latest version of the Postg
 
 <aside class="notes">
   Speaker notes:
-  But backups are only part of the picture what about restores ? Restores bring about a few more complications..
+  But backups are only part of the picture.. Restores bring about a few more complications..
 </aside>
 
 ---
@@ -147,12 +147,13 @@ kubectl annotate -n postgres-operator postgrescluster bestie-pgc --overwrite \
 
 <aside class="notes">
   Speaker notes:
-  Another way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. Switch the app into a read only mode in order to prevent dataloss during the upgrade process.. spin up a new database instance and a a new deployment with an older version of the app and the database (which are compatible) .. backup the read only isntance and restore it to the newly spun up instance after applying any migrations if neccessary and then switch traffic over. This is something that can be automated by software operators.
+  A more general way to handle this kind of a scenario i.e. restore a backup of a database version that is not compatible with both the current and the target app version is to follow this sort of general orchestration workflow. Switch the app into a read only mode in order to prevent dataloss during the upgrade process.. spin up a new database instance and a a new deployment with an older version of the app and the database (which are compatible) .. backup the read only instance and restore it to the newly spun up instance after applying any migrations if neccessary and then switch traffic over. This is something that can be automated by software operators.
 </aside>
 
 ---
 #### Cloning the db (from Bestie version A)
 - Set the old db as the datasource
+
 ```
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
@@ -163,6 +164,11 @@ spec:
     postgresCluster:
       clusterName: bestie1-pgc
       repoName: repo1
+```
+
+```
+oc annotate -n postgres-operator postgrescluster bestie-pgc \
+  postgres-operator.crunchydata.com/pgbackrest-backup="$(date)"
 ```
 
 <aside class="notes">
@@ -187,7 +193,7 @@ spec:
 
 <aside class="notes">
 Speaker notes:
-The operator refers to the database via the postgrescluster with a defined name so it will automatically use the cloned database. Next we update the existing service to point to this new stack by refering to it by label.
+The operator refers to the database via the postgrescluster custom resource with a pre-defined naming convention so it will automatically use the cloned database. Lastly we update the existing ingress to point to this new stack. At this point in compatible migrations can be done without any user impact.
 </aside>
 
 
@@ -198,5 +204,5 @@ The operator refers to the database via the postgrescluster with a defined name 
 
 <aside class="notes">
 Speaker notes:
-There are other tools that can do achieve this workflow but the advantage of using an operator is that you can customize, package and distribute this with your application and provide your users with an app store like experience via operator hub. So all the building blocks to acheieve this workflow are in place and can be orchrestated by our operator. I don't yet have a working demo for this part but you should be able to try it using the demo l5 operator that has been published to the community operator hub.
+There are other tools that can do achieve this workflow but the advantage of using an operator is that you can customize, package and distribute this with your application and provide your users with a one click app store like experience via operator hub. So all the building blocks to acheieve this workflow are in place and can be orchrestated by our operator. I don't yet have a working demo for this part but you should be able to try in the upcoming weeks using the demo l5 operator that has been published to the community operator hub.
 </aside>

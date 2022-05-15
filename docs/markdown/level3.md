@@ -95,9 +95,7 @@ The operator can achieve this step by retrieving the latest version of the Postg
 
 ---
 #### Service disruptions
-- Coming back to the problem of application and database compatibility
-
-![Incompatible Changes](images/incompatible_upgrade.png)
+Coming back to the problem of application and database compatibility
 
 <aside class="notes">
   Speaker notes:
@@ -106,7 +104,9 @@ The operator can achieve this step by retrieving the latest version of the Postg
 
 ---
 #### Ensure Backward compaitibility
-- Effectively always roll forward
+Effectively always roll forward
+
+![Incompatible Changes](images/incompatible_upgrade.png)
 
 <aside class="notes">
   Speaker notes:
@@ -114,7 +114,6 @@ The operator can achieve this step by retrieving the latest version of the Postg
 </aside>
 
 ---
-
 #### The "easy way"
 - Allow for some service disruption
 
@@ -212,5 +211,5 @@ The operator refers to the database via the postgrescluster custom resource with
 
 <aside class="notes">
 Speaker notes:
-There are other tools that can do achieve this workflow but the advantage of using an operator is that you can customize, package and distribute this with your application and provide your users with a one click app store like experience via operator hub. So all the building blocks to acheieve this workflow are in place and can be orchrestated by our operator. I don't yet have a working demo for this part but you should be able to try in the upcoming weeks using the demo l5 operator that has been published to the community operator hub.
+There are other tools that can do achieve this sort of blue/green red/black deployment strategy but the advantage of using an operator is that you can customize, package and distribute this with your application and provide your users with a one click app store like experience via the operator hub. So all the building blocks to acheieve this workflow are in place and can be orchrestated by our operator. I don't yet have a working demo for this part but you should be able to try in the upcoming weeks using the demo l5 operator that has been published to the community operator hub.
 </aside>

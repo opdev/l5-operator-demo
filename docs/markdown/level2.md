@@ -3,7 +3,8 @@
 - Operand (Our Application)
 
 <aside class="notes">
-  What is Level 2 ? On a basic level it can be described as being able to perform minor and patch upgrades. There are two layers two consider here. The Operator and the Operand i.e. our application. Operator upgrades can be configured to be done automatically via the Operator Lifecycle Manager. The version of the Operand is controlled by a field in our operators Custom Resource.
+  What is Level 2 ? On a basic level it can be described as being able to perform minor and patch upgrades. 
+  - There are two layers two consider here. The Operator and the Operand i.e. our application. Operator upgrades can be configured to be done automatically via the Operator Lifecycle Manager. The version of the Operand is controlled by a field in our operators Custom Resource.
 </aside>
 
 ---
@@ -15,11 +16,11 @@
 </aside>
 
 ---
-#### Free Lunch
+#### 1st Free Lunch
 As easy as updating the image in our deployment
 
 <aside class="notes"> 
-  If we are talking about minor or patch upgrades, this is something we already get for free with kubernetes.
+  we already get minor / patch update capability for free with kubernetes using deployments
 </aside>
 
 ---
@@ -64,7 +65,7 @@ Status:
 *For minor / patch version updates
 
 <aside class="notes">
-  This is another thing that we get for free with Kubernetes. liveness and readiness probes ensure that your image is rolled out only if it is healthy.   There are scenarios where upgrades or more generally version changes may not be seamless. One example of this is incompatible database changes.
+  Liveness and readiness probes ensure that your image is rolled out only if it is healthy. However, there may be scenarios where upgrades or more generally version changes may not be fully seamless. One example of this is incompatible database changes.
 
 </aside>
 

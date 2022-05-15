@@ -7,16 +7,16 @@ Life is full of surprises
 Thank you Sid.
 
 - Life is full of surprises so for everything else we use prometheus and grafana.
-- Working level 3 operator
+
+At this point, life is good. Bestie operator is now a capability - level 3  operator.
 - seamless upgrades
 - full lifecycle
-- something went wrong
-- upgrade bestie application to the latest version didn't work
-- a few days goes by
-- upgrade didn't work
-- kubectl get pod
-- pod status is in the Waiting state, the image cannot be pulled because I had the wrong version
-- after I applied the cr with the correct version number the upgrade succeded.
+
+What else could we ask for ?
+Well, alot more!!!
+we have guardrails built around the deployment so the website is always available even if our upgrades fails.
+
+because of this, we have to manually observe the podstatus or bring up the website to know if the upgrade worked or not.
 
 so this brings us to Level 4 - Deep Insights.
 
@@ -83,8 +83,10 @@ spec:
 - coming from bestie website
 - bestie-route-bestie.apps.demo.opdev.io/metrics
 
-- Make a note, Spec.endpoint.port is the service's port name
-- Spec.Selector.matchlabels needs to match the service's label
+- Most of the servicemonitor yaml manifest is the same 
+  except for
+  - Spec.endpoint.port. It is the service's port name
+  - Spec.Selector.matchlabels. It has to match the service's label
 
 </aside>
 
@@ -110,11 +112,10 @@ rules:
 
 <aside class="notes">
 
-- operator-framework use kubebuilder to scalfold operator
-- metrics are protected by kube-rbac-proxy by default
-- grant permissions to the Prometheus server so that it can scrape the protected metrics.
-- To achieve this
-- create a clusterrole
+The operator-framework use kubebuilder to scalfold operator
+so metrics are protected by kube-rbac-proxy by default
+because of this, we need to grant permissions to the Prometheus server so that it can scrape the protected metrics.
+To achieve this, create a clusterrole
 
 </aside>
 ---
@@ -134,9 +135,12 @@ subjects:
 ```
 
 <aside class="notes">
-snipid yaml manifest
-- and a clusterrolebinding to bind
-- clusterrole prometheus-k8s-role to prometheus-k8s serviceaccount in the openshift-monitoring namespace
+
+and a clusterrolebinding to bind
+
+clusterrole : prometheus-k8s-role to 
+
+the serviceaccount : prometheus-k8s in the openshift-monitoring namespace
 
 </aside>
 ---
@@ -150,10 +154,18 @@ openshift.io/cluster-monitoring="true"
 
 <aside class="notes">
 
-Set the labels for the namespace that you want to scrape, which enables OpenShift cluster monitoring for that namespace
+Set the labels for the namespace that you want to scrape
 
-- operator namespace
-- bestie application namespace
+The label
+
+openshift.io/cluster-monitoring="true"
+
+enables OpenShift cluster monitoring for that namespace
+
+For bestie, we added a label in the 
+
+1. operator namespace
+2. bestie application namespace
 
 </aside>
 ---

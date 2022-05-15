@@ -282,11 +282,10 @@ Use metrics to create Alert rules to produce alerts
 
 <aside class="notes">
 
-Number of visitors to the site
-What pages were viewed
-What operations did the user do - search pet/insert add/updated add/etc. And did it succeed or failed
-How many pets were adopted and their details as labels (pet type:dog/cat/etc, time the add was listed/ age of the pet/ gender, has picture:yes/no)
-
+- Number of visitors to the site
+- What pages were viewed
+- What operations did the user do - search pet/insert add/updated add/etc. And did it succeed or failed
+- How many pets were adopted and their details as labels (pet type:dog/cat/etc, time the add was listed/ age of the pet/ gender, has picture:yes/no)
 
 </aside>
 

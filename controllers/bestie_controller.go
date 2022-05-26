@@ -92,6 +92,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		srv1.NewDeploymentSizeReconciler(r.Client, log, r.Scheme),
 		srv1.NewDeploymentImageReconciler(r.Client, log, r.Scheme),
 		srv1.NewServiceReconciler(r.Client, log, r.Scheme),
+		srv1.NewServiceMonitorReconciler(r.Client, log, r.Scheme),
 		srv1.NewHPAReconciler(r.Client, log, r.Scheme),
 		srv1.NewRouteReconciler(r.Client, log, r.Scheme),
 	}

@@ -23,12 +23,13 @@ import (
 	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/go-logr/logr"
 
-	"github.com/opdev/l5-operator-demo/internal/util"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/opdev/l5-operator-demo/internal/util"
 
 	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 )

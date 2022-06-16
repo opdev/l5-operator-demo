@@ -21,6 +21,10 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+
+	"github.com/opdev/l5-operator-demo/internal/util"
+
 	"github.com/opdev/l5-operator-demo/internal/bestie_errors"
 
 	"github.com/go-logr/logr"
@@ -81,6 +85,17 @@ func (r *HPAReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bestie) (c
 		err = r.updateHorizontalPodAutoScaler(ctx, *bestie.DeepCopy(), *autoScaler.DeepCopy())
 		if err != nil {
 			return ctrl.Result{Requeue: true}, err
+		}
+		err = util.RefreshCustomResource(ctx, r.client, bestie)
+		if err != nil {
+			log.Error(err, "Unable to refresh bestie custom resource")
+			return ctrl.Result{}, err
+		}
+		meta.SetStatusCondition(&bestie.Status.Conditions, NewHPACreatedCondition())
+		err = r.client.Status().Update(ctx, bestie)
+		if err != nil {
+			log.Error(err, "Unable to update status")
+			return ctrl.Result{}, err
 		}
 	}
 	return ctrl.Result{}, nil

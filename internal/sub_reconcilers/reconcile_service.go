@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -66,6 +68,17 @@ func (r *ServiceReconciler) Reconcile(ctx context.Context, bestie *petsv1.Bestie
 			}
 		} else {
 			return ctrl.Result{Requeue: true}, err
+		}
+		err = util.RefreshCustomResource(ctx, r.client, bestie)
+		if err != nil {
+			r.Log.Error(err, "Unable to refresh bestie custom resource")
+			return ctrl.Result{}, err
+		}
+		meta.SetStatusCondition(&bestie.Status.Conditions, NewServiceCreatedCondition())
+		err = r.client.Status().Update(ctx, bestie)
+		if err != nil {
+			r.Log.Error(err, "Unable set service created status condition")
+			return ctrl.Result{}, err
 		}
 	}
 	return ctrl.Result{}, err

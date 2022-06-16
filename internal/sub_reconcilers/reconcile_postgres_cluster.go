@@ -23,6 +23,7 @@ import (
 	pgov1 "github.com/crunchydata/postgres-operator/pkg/apis/postgres-operator.crunchydata.com/v1beta1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -58,12 +59,23 @@ func (r *PostgresClusterCRReconciler) Reconcile(ctx context.Context, bestie *pet
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Creating a new Postgres Cluster for Bestie")
 		fileName := "config/resources/postgrescluster.yaml"
-		err := r.applyManifests(ctx, bestie, pgo, fileName)
+		err = r.applyManifests(ctx, bestie, pgo, fileName)
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
 		}
+		err = util.RefreshCustomResource(ctx, r.client, bestie)
+		if err != nil {
+			log.Error(err, "Unable to refresh custom resource")
+			return ctrl.Result{}, err
+		}
+		meta.SetStatusCondition(&bestie.Status.Conditions, NewDatabaseCreatedCondition())
+		err = r.client.Status().Update(ctx, bestie)
+		if err != nil {
+			log.Error(err, "Unable to refresh custom resource")
+			return ctrl.Result{}, err
+		}
 	}
-	return ctrl.Result{}, err
+	return ctrl.Result{}, nil
 }
 
 func (r *PostgresClusterCRReconciler) applyManifests(ctx context.Context, bestie *petsv1.Bestie, obj client.Object, fileName string) error {

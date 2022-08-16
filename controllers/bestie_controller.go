@@ -38,6 +38,10 @@ import (
 	srv1 "github.com/opdev/l5-operator-demo/internal/sub_reconcilers"
 )
 
+const (
+	namespaceLabel = "openshift.io/cluster-monitoring"
+)
+
 // BestieReconciler reconciles a Bestie object.
 type BestieReconciler struct {
 	client.Client
@@ -84,6 +88,28 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		log.Error(err, "Failed to get Bestie")
 		return ctrl.Result{}, err
 	}
+
+	//Set the labels for the namespace that you want to scrape,
+	//which enables OpenShift cluster monitoring for that namespace
+	namespace := &corev1.Namespace{}
+	log.Info("To enable Openshift cluster monitoring set namespace label")
+	if err = r.Get(ctx, req.NamespacedName, namespace); err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		log.Error(err, "unable to fetch Namespace")
+		return ctrl.Result{}, err
+	}
+	isSet := namespace.Labels[namespaceLabel]
+	log.Info("isSet is"+isSet)
+	if isSet != "true" {
+		namespace.Labels[namespaceLabel] = "true"
+		if err = r.Update(ctx, namespace); err != nil {
+			log.Error(err, "unable to apply label to the namespace")
+			return ctrl.Result{}, err
+		}
+	}
+	log.Info("Namespace label has been set")
 
 	subReconcilerList := []srv1.Reconciler{
 		srv1.NewPostgresClusterCRReconciler(r.Client, log, r.Scheme),

@@ -20,6 +20,9 @@ import (
 	"context"
 	"time"
 
+	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
+	srv1 "github.com/opdev/l5-operator-demo/internal/sub_reconcilers"
+
 	"github.com/opdev/l5-operator-demo/internal/util"
 
 	routev1 "github.com/openshift/api/route/v1"
@@ -33,13 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
-
-	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
-	srv1 "github.com/opdev/l5-operator-demo/internal/sub_reconcilers"
-)
-
-const (
-	namespaceLabel = "openshift.io/cluster-monitoring"
 )
 
 // BestieReconciler reconciles a Bestie object.
@@ -89,28 +85,6 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	//Set the labels for the namespace that you want to scrape,
-	//which enables OpenShift cluster monitoring for that namespace
-	namespace := &corev1.Namespace{}
-	log.Info("To enable Openshift cluster monitoring set namespace label")
-	if err = r.Get(ctx, req.NamespacedName, namespace); err != nil {
-		if errors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
-		log.Error(err, "unable to fetch Namespace")
-		return ctrl.Result{}, err
-	}
-	isSet := namespace.Labels[namespaceLabel]
-	log.Info("isSet is"+isSet)
-	if isSet != "true" {
-		namespace.Labels[namespaceLabel] = "true"
-		if err = r.Update(ctx, namespace); err != nil {
-			log.Error(err, "unable to apply label to the namespace")
-			return ctrl.Result{}, err
-		}
-	}
-	log.Info("Namespace label has been set")
-
 	subReconcilerList := []srv1.Reconciler{
 		srv1.NewPostgresClusterCRReconciler(r.Client, log, r.Scheme),
 		srv1.NewDatabaseSeedJobReconciler(r.Client, log, r.Scheme),
@@ -121,6 +95,9 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		srv1.NewServiceMonitorReconciler(r.Client, log, r.Scheme),
 		srv1.NewHPAReconciler(r.Client, log, r.Scheme),
 		srv1.NewRouteReconciler(r.Client, log, r.Scheme),
+		//Set the labels for the namespace that you want to scrape,
+		//which enables OpenShift cluster monitoring for that namespace
+		srv1.NewLabelReconciler(r.Client, log, r.Scheme),
 	}
 
 	requeueResult := false

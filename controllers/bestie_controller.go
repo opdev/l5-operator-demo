@@ -20,6 +20,9 @@ import (
 	"context"
 	"time"
 
+	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
+	srv1 "github.com/opdev/l5-operator-demo/internal/sub_reconcilers"
+
 	"github.com/opdev/l5-operator-demo/internal/util"
 
 	routev1 "github.com/openshift/api/route/v1"
@@ -33,9 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
-
-	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
-	srv1 "github.com/opdev/l5-operator-demo/internal/sub_reconcilers"
 )
 
 // BestieReconciler reconciles a Bestie object.
@@ -95,6 +95,9 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		srv1.NewServiceMonitorReconciler(r.Client, log, r.Scheme),
 		srv1.NewHPAReconciler(r.Client, log, r.Scheme),
 		srv1.NewRouteReconciler(r.Client, log, r.Scheme),
+		//Set the labels for the namespace that you want to scrape,
+		//which enables OpenShift cluster monitoring for that namespace
+		srv1.NewLabelReconciler(r.Client, log, r.Scheme),
 	}
 
 	requeueResult := false

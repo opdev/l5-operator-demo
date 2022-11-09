@@ -7,9 +7,10 @@ jobs:
     steps:
       - name: operator sdk bundle validate
         id: validate
-        uses: opdev/operator-sdk-bundle-validate@v1alpha3
+        uses: opdev/operator-sdk-bundle-validate@v1alpha7
         with:
           bundle-path: './bundle'
+          generate-bundle: false
       # Use the output from the `validate` step
       - name: Get the validation output
         run: echo "${{ steps.hello.outputs.validation-output }}"

@@ -5,6 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     name: A job to validate the operator bundle
     steps:
+      - name: checkout
+        id: checkout
+        uses: actions/checkout@v3
       - name: operator sdk bundle validate
         id: validate
         uses: opdev/operator-sdk-bundle-validate@v1alpha7

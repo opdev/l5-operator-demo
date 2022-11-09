@@ -7,7 +7,7 @@ jobs:
     steps:
       - name: operator sdk bundle validate
         id: validate
-        uses: opdev/operator-sdk-bundle-validate@v1alpha2
+        uses: opdev/operator-sdk-bundle-validate@v1alpha3
         with:
           bundle-path: './bundle'
       # Use the output from the `validate` step

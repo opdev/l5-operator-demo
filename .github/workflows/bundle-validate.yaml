@@ -1,0 +1,15 @@
+on: [push]
+
+jobs:
+  bundle_validate_job:
+    runs-on: ubuntu-latest
+    name: A job to validate the operator bundle
+    steps:
+      - name: operator sdk bundle validate
+        id: validate
+        uses: opdev/operator-sdk-bundle-validate@v1alpha1
+        with:
+          bundle-path: './bundle'
+      # Use the output from the `validate` step
+      - name: Get the validation output
+        run: echo "${{ steps.hello.outputs.validation-output }}"

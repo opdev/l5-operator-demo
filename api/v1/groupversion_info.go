@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1 contains API Schema definitions for the pets v1 API group
-//+kubebuilder:object:generate=true
-//+groupName=pets.bestie.com
+// +kubebuilder:object:generate=true
+// +groupName=pets.bestie.com
 package v1
 
 import (

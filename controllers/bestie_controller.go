@@ -18,10 +18,12 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	petsv1 "github.com/opdev/l5-operator-demo/api/v1"
 	srv1 "github.com/opdev/l5-operator-demo/internal/sub_reconcilers"
+	"k8s.io/client-go/tools/record"
 
 	"github.com/opdev/l5-operator-demo/internal/util"
 
@@ -41,7 +43,8 @@ import (
 // BestieReconciler reconciles a Bestie object.
 type BestieReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme        *runtime.Scheme
+	eventRecorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=pets.bestie.com,resources=besties,verbs=get;list;watch;create;update;patch;delete
@@ -84,7 +87,7 @@ func (r *BestieReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		log.Error(err, "Failed to get Bestie")
 		return ctrl.Result{}, err
 	}
-
+	r.eventRecorder.Event(bestie, "Normal", "Reconcile Triggered", fmt.Sprintf("Reconciling %s in namespace %s", bestie.Name, bestie.Namespace))
 	subReconcilerList := []srv1.Reconciler{
 		srv1.NewPostgresClusterCRReconciler(r.Client, log, r.Scheme),
 		srv1.NewDatabaseSeedJobReconciler(r.Client, log, r.Scheme),
@@ -128,6 +131,7 @@ func (r *BestieReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		builder.Owns(&routev1.Route{})
 	}
 	builder.WithOptions(controller.Options{MaxConcurrentReconciles: 2})
-
+	//setup event recorder
+	r.eventRecorder = mgr.GetEventRecorderFor("bestie-controller")
 	return builder.Complete(r)
 }

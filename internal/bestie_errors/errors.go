@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,3 +20,4 @@ import "errors"
 
 var InvalidMaxReplicasValue = errors.New("MaxReplicas should be greater than deployment size to avoid contention between the deployment and horizontal pod autoscaling controllers")
 var InvalidDeploymentSizeValue = errors.New("Deployment size should be less than MaxReplicas to avoid contention between the deployment and horizontal pod autoscaling controllers")
+var ErrWhenRefreshingBestieResource = errors.New("Error when retrieving most recent copy of the bestie custom resource")

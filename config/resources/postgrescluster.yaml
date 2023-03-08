@@ -5,7 +5,7 @@ metadata:
 spec:
   backups:
     pgbackrest:
-      image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.38-0
+      image: registry.developers.crunchydata.com/crunchydata/crunchy-pgbackrest:ubi8-2.41-4
       repos:
       - name: repo1
         volume:
@@ -15,7 +15,7 @@ spec:
             resources:
               requests:
                 storage: 1Gi
-  image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi8-13.6-1
+  image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi8-14.7-0
   instances:
   - dataVolumeClaimSpec:
       accessModes:
@@ -26,4 +26,4 @@ spec:
     name: instance1
     replicas: 1
   port: 5432
-  postgresVersion: 13
+  postgresVersion: 14

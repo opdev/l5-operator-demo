@@ -21,6 +21,9 @@ import (
 	"fmt"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/opdev/l5-operator-demo/internal/util"
@@ -66,28 +69,32 @@ func (r *DatabaseSeedJobReconciler) Reconcile(ctx context.Context, bestie *petsv
 		log.Info(fmt.Sprintf("will retry after waiting for %s", delay))
 		return ctrl.Result{RequeueAfter: delay}, nil
 	}
+	// if postgres is not ready yet, requeue after delay seconds.
 	postgresReady := false
 	if pgo.Status.InstanceSets != nil && len(pgo.Status.InstanceSets) > 0 && pgo.Status.InstanceSets[0].ReadyReplicas >= 1 {
 		postgresReady = true
 	}
 	if !postgresReady {
-		// If postgres is not ready yet, requeue after delay seconds.
 		delay := time.Second * time.Duration(15)
 		log.Info(fmt.Sprintf("postgres is instantiating, waiting for %s", delay))
-		// implement requeue after delay in subreconciler
 		return ctrl.Result{RequeueAfter: delay}, nil
+	}
+	_, err = r.updateStatusCondition(ctx, *bestie)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 	// seed the database - as long as the postgres app is up and running this can run.
 	log.Info("create a job to seed the database")
 	job := &batchv1.Job{}
 	err = r.client.Get(ctx, types.NamespacedName{Name: bestie.Name + "-job", Namespace: bestie.Namespace}, job)
-	if err != nil && errors.IsNotFound(err) {
+	if err != nil && errors.IsNotFound(err) && postgresReady {
 		log.Info("Creating a new job for bestie")
 		fileName := "config/resources/bestie-job.yaml"
 		err := r.applyManifests(ctx, bestie, job, fileName)
 		if err != nil {
 			return ctrl.Result{}, fmt.Errorf("error during Manifests apply - %w", err)
 		}
+		return r.createStatusCondition(ctx, *bestie)
 	}
 	return ctrl.Result{}, nil
 }
@@ -98,4 +105,35 @@ func (r *DatabaseSeedJobReconciler) applyManifests(ctx context.Context, bestie *
 		return err
 	}
 	return err
+}
+
+func (r *DatabaseSeedJobReconciler) createStatusCondition(ctx context.Context, bestie petsv1.Bestie) (ctrl.Result, error) {
+	err := util.RefreshCustomResource(ctx, r.client, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	meta.SetStatusCondition(&bestie.Status.Conditions, NewDatabaseSeededCondition())
+	err = r.client.Status().Update(ctx, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
+}
+
+func (r *DatabaseSeedJobReconciler) updateStatusCondition(ctx context.Context, bestie petsv1.Bestie) (ctrl.Result, error) {
+	// update status condition
+	err := util.RefreshCustomResource(ctx, r.client, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	databaseReadyCondition := NewDatabaseCreatedCondition()
+	databaseReadyCondition.Status = metav1.ConditionTrue
+	databaseReadyCondition.Reason = "HasReadyReplicas"
+	databaseReadyCondition.Message = "Postgres cluster has ready replicas"
+	meta.SetStatusCondition(&bestie.Status.Conditions, databaseReadyCondition)
+	err = r.client.Status().Update(ctx, &bestie)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
 }

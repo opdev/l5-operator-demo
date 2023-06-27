@@ -24,6 +24,12 @@ spec:
       displayName: Bestie
       kind: Bestie
       name: besties.pets.bestie.com
+      statusDescriptors:
+      - description: The operators status conditions
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1
   description: |
     ## Usage

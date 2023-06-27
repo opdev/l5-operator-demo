@@ -22,14 +22,15 @@ metadata:
     categories: Application Runtime
     certified: "false"
     containerImage: quay.io/opdev/l5-operator:v0.0.2
+    createdAt: "2023-06-27T16:56:10Z"
     description: L5 Operator is a demo operator that aims to demonstrate level 5 capabilities
       for web applications.
-    operators.operatorframework.io/builder: operator-sdk-v1.19.0+git
+    operators.operatorframework.io/builder: operator-sdk-v1.30.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     relatedImages: quay.io/opdev/bestie@sha256:0e99ada2b1de19043845dd9076789584aeddc2646402e5f0987dd00424be1ee7
     repository: https://github.com/opdev/l5-operator-demo
     support: Best Effort
-  name: l5-operator.v0.0.2
+  name: l5-operator.v0.0.3
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -39,6 +40,12 @@ spec:
       displayName: Bestie
       kind: Bestie
       name: besties.pets.bestie.com
+      statusDescriptors:
+      - description: The operators status conditions
+        displayName: Conditions
+        path: conditions
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes.conditions
       version: v1
   description: |
     ## Usage
@@ -198,7 +205,7 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
-                image: quay.io/opdev/l5-operator:v0.0.2
+                image: quay.io/opdev/l5-operator:v0.0.3
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -282,4 +289,4 @@ spec:
   provider:
     name: Red Hat Internal
     url: redhat.com
-  version: 0.0.2
+  version: 0.0.3
